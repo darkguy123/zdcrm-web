@@ -37,7 +37,7 @@ const schema = z.object({
     .min(10, { message: "Item description must be at least 10 characters long" })
     .max(500, { message: "Item description must be at most 500 characters long" }),
   location: z.string().min(1, { message: "Storage location is required" }),
-  branch: z.number(),
+  // branch: z.number(),
   quantity: z
     .number()
     .int()
@@ -89,7 +89,7 @@ const schema = z.object({
 type FormType = z.infer<typeof schema>;
 
 const createStoreInventory = async (data: FormType) => {
-  console.log(data);
+  // console.log(data);
   const res = await APIAxios.post("/inventory/create-store-inventory/", data, {
     // headers: { 'Content-Type': 'multipart/form-data' },
   });
@@ -126,6 +126,7 @@ export default function NewStoreInventorySheet() {
   });
   const { uploadToCloudinary } = useCloudinary();
   const { isUploading } = useLoading();
+
   const onSubmit = async (data: FormType) => {
     let image_one: string | undefined;
     const imageFile = data.image_one;
@@ -211,11 +212,12 @@ export default function NewStoreInventorySheet() {
                 name="location"
                 value={field.value?.toString() || ""}
                 options={[
-                  { label: "Main Store", value: "1" },
-                  { label: "Mini Store", value: "2" },
-                  { label: "Processing Room", value: "3" },
-                  { label: "Kitchen", value: "4" },
-                  { label: "Cold Room", value: "5" },
+                  { label: "Reception Shelf", value: "Reception Shelf" },
+                  { label: "Main Store", value: "Main Store" },
+                  { label: "Mini Store", value: "Mini Store" },
+                  { label: "Processing Room", value: "Processing Room" },
+                  { label: "Kitchen", value: "Kitchen" },
+                  { label: "Cold Room", value: "Cold Room" },
                 ]}
                 valueKey="value"
                 labelKey="label"
@@ -228,7 +230,7 @@ export default function NewStoreInventorySheet() {
             )}
           />
 
-          <Controller
+          {/* <Controller
             name="branch"
             control={control}
             render={({ field }) => (
@@ -241,7 +243,7 @@ export default function NewStoreInventorySheet() {
                 isLoadingOptions={branchesLoading}
               />
             )}
-          />
+          /> */}
 
           <Input
             type="number"

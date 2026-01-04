@@ -57,7 +57,7 @@ const schema = z.object({
     .string()
     .min(1, { message: "Item name is required" })
     .max(255, { message: "Item name must be at most 255 characters long" }),
-  branch: z.number({ required_error: "Branch is required" }),
+  // branch: z.number({ required_error: "Branch is required" }),
   description: z
     .string()
     .min(10, {
@@ -123,8 +123,8 @@ export default function NewProductInventorySheet() {
     resolver: zodResolver(schema),
     defaultValues: {
       image_one: null,
-      category: 1,
-      branch: undefined,
+      category: undefined,
+      // branch: undefined,
       variations: [
         {
           size: "4",
@@ -226,7 +226,7 @@ export default function NewProductInventorySheet() {
               errorMessage={errors.image_one?.message as string}
             />
 
-            <Controller
+            {/* <Controller
               name="branch"
               control={control}
               render={({ field }) => (
@@ -249,7 +249,7 @@ export default function NewProductInventorySheet() {
                   errorMessage={errors.branch?.message}
                 />
               )}
-            />
+            /> */}
             <Controller
               name="name"
               control={control}
