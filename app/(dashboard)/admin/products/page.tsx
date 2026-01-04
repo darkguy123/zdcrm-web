@@ -403,11 +403,11 @@ const Page = () => {
 
       const submissionData = {
         name: data.name,
-        category_id: data.category_id,
+        category: data.category_id,
         external_id: data.external_id,
         is_active: data.is_active,
         image: imageUrl,
-        business_id: Number.parseInt(data.branch),
+        business: Number.parseInt(data.branch),
       }
 
       if (editingProductId) {
