@@ -43,6 +43,7 @@ export interface TProductVariation {
   last_updated_by: Createdby;
   create_date: string;
   update_date: string;
+  location: string;
 }
 
 interface Createdby {
