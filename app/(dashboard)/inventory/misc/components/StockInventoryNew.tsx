@@ -67,7 +67,7 @@ const schema = z
       .min(10, { message: "Item description is required" })
       .max(300),
     category: z.number(),
-    branch: z.number({ required_error: "Branch is required" }),
+    // branch: z.number({ required_error: "Branch is required" }),
     image_one: z
       .any()
       .nullable()
@@ -253,7 +253,7 @@ export default function NewInventorySheet() {
               hasError={!!errors.image_one}
               errorMessage={errors.image_one?.message as string}
             />
-
+            {/* 
             <Controller
               name="branch"
               control={control}
@@ -275,6 +275,30 @@ export default function NewInventorySheet() {
                   isLoadingOptions={branchesLoading}
                   hasError={!!errors.branch}
                   errorMessage={errors.branch?.message}
+                />
+              )}
+              /> */}
+            <Controller
+              name="category"
+              control={control}
+              render={({ field }) => (
+                <SelectSingleCombo
+                  {...field}
+                  name="category"
+                  value={field.value?.toString() || ""}
+                  options={
+                    categories?.map((cat) => ({
+                      label: cat.name,
+                      value: cat.id.toString(),
+                    })) || []
+                  }
+                  valueKey="value"
+                  labelKey="label"
+                  placeholder="Category"
+                  onChange={(value) => field.onChange(Number(value))}
+                  isLoadingOptions={categoriesLoading}
+                  hasError={!!errors.category}
+                  errorMessage={errors.category?.message}
                 />
               )}
             />
@@ -305,30 +329,6 @@ export default function NewInventorySheet() {
               )}
             />
 
-            <Controller
-              name="category"
-              control={control}
-              render={({ field }) => (
-                <SelectSingleCombo
-                  {...field}
-                  name="category"
-                  value={field.value?.toString() || ""}
-                  options={
-                    categories?.map((cat) => ({
-                      label: cat.name,
-                      value: cat.id.toString(),
-                    })) || []
-                  }
-                  valueKey="value"
-                  labelKey="label"
-                  placeholder="Category"
-                  onChange={(value) => field.onChange(Number(value))}
-                  isLoadingOptions={categoriesLoading}
-                  hasError={!!errors.category}
-                  errorMessage={errors.category?.message}
-                />
-              )}
-            />
 
             {fields.map((field, index) => (
               <div key={field.id} className="space-y-4">
@@ -462,7 +462,7 @@ export default function NewInventorySheet() {
                     />
                   )}
                 />
-          
+
 
                 <Controller
                   name={`variations.${index}.location`}

@@ -46,6 +46,7 @@ import { SmallSpinner } from "@/icons/core"
 import { useUpdateProductVariationStatus } from "./misc/api/editProduct"
 import { Copy } from "iconsax-react"
 import { useGetAllBranches } from "@/mutations/business.mutation"
+import Image from "next/image"
 
 interface ProductFormValues {
   branch: string
@@ -156,6 +157,7 @@ const Page = () => {
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
+
     defaultValues: {
       branch: "all",
       name: "",
@@ -220,7 +222,27 @@ const Page = () => {
   // Reset form when sheet is closed
   useEffect(() => {
     if (!isSheetOpen.state) {
-      form.reset()
+      form.reset({
+        branch: "all",
+        name: "",
+        business_id: 0,
+        category_id: 0,
+        category_name: "",
+        external_id: "",
+        is_active: true,
+        image: { file: null, url: "" },
+        variations: [
+          {
+            id: 0,
+            size: "",
+            layer: undefined,
+            max_flowers: undefined,
+            cost_price: "",
+            selling_price: "",
+          },
+        ],
+      })
+
       setEditingProductId(null)
     }
   }, [isSheetOpen.state, form])
@@ -248,7 +270,6 @@ const Page = () => {
   const { uploadToCloudinary } = useCloudinary()
 
   const handleEditClick = (product: TProductItem) => {
-    console.log(product)
     // Transform the product data to match our form structure
     const formVariations = product.variations.map((variation) => {
       return {
@@ -382,11 +403,11 @@ const Page = () => {
 
       const submissionData = {
         name: data.name,
-        category_id: data.category_id,
+        category: data.category_id,
         external_id: data.external_id,
         is_active: data.is_active,
         image: imageUrl,
-        business_id: Number.parseInt(data.branch),
+        business: Number.parseInt(data.branch),
       }
 
       if (editingProductId) {
@@ -433,6 +454,7 @@ const Page = () => {
               })
 
               setSuccessMessage("Product updated successfully")
+              // form.reset()
               isSuccessModal.setTrue()
               isSheetOpen.setFalse()
             },
@@ -468,14 +490,15 @@ const Page = () => {
           {
             onSuccess: () => {
               setSuccessMessage("Product created successfully")
+              // form.reset()
               isSuccessModal.setTrue()
               isSheetOpen.setFalse()
-              form.reset()
             },
             onError: (error: unknown) => {
               const errMessage = extractErrorMessage((error as any)?.response?.data as any)
               setErrorMessage(errMessage || "Failed to create product")
               isErrorModal.setTrue()
+
             },
           },
         )
@@ -694,10 +717,11 @@ const Page = () => {
                           <div className="space-y-2">
                             {field.value.url && (
                               <div className="relative w-32 h-32 rounded-md overflow-hidden border">
-                                <img
+                                <Image
                                   src={field.value.url || "/placeholder.svg"}
                                   alt="Product"
-                                  className="w-full h-full object-cover"
+                                  className="size-full object-cover"
+                                  fill
                                 />
                               </div>
                             )}
@@ -1055,10 +1079,10 @@ const Page = () => {
             <TableBody>
               {productsData?.data?.map((product) => (
                 <TableRow key={product.id}>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell className="font-medium">{product.business?.name}</TableCell>
-                  <TableCell>{product.category.name}</TableCell>
-                  <TableCell>
+                  <TableCell className="font-medium align-top">{product.name}</TableCell>
+                  <TableCell className="font-medium align-top">{product.business?.name}</TableCell>
+                  <TableCell className="align-top">{product.category.name}</TableCell>
+                  <TableCell className="align-top">
                     <div className="space-y-2">
                       {product.variations.length > 0 ? (
                         product.variations.map((variation) => (
@@ -1295,7 +1319,7 @@ const Page = () => {
                       </Button>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right align-top">
                     <div className="flex justify-end gap-[10px]">
                       {/* Duplicate Product Button */}
                       <div
