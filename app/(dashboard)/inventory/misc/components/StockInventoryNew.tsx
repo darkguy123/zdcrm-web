@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import * as z from "zod";
 import { Plus, User, X } from "lucide-react";
@@ -35,6 +35,7 @@ import ErrorModal from "@/components/ui/modal-error";
 import CustomImagePicker from "./CustomImagePicker";
 import { useGetStockCategories } from "../api";
 import { useGetAllBranches } from "@/app/(dashboard)/admin/businesses/misc/api/getAllBranches";
+import { error } from "console";
 
 const variationSchema = z.object({
   size: z.string().optional(),
@@ -117,6 +118,7 @@ const schema = z
       });
     },
     {
+      path: ["variations"],
       message:
         "Variations must include the correct fields based on the selected category",
     }
@@ -213,10 +215,18 @@ export default function NewInventorySheet() {
     };
     createStockInvetory(dataToSubmit);
   };
-  console.log(errors);
+
   const selectedCategoryName = categories?.find(
     (cat) => cat.id === watch("category")
   )?.name;
+
+  const errorMessage = errors?.variations?.root?.message || errors?.root?.message;
+
+  useEffect(() => {
+    if (errorMessage) {
+      openErrorModalWithMessage(errorMessage);
+    }
+  }, [errorMessage]);
 
   return (
     <>
