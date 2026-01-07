@@ -80,7 +80,7 @@ const OrderRow: React.FC<OrderRowProps> = ({ product, refetch }) => {
           </TableCell>
           <TableCell>{variation.quantity_sold}</TableCell>
           <TableCell>{/* // */}</TableCell>
-          <TableCell>{/* // */}</TableCell>
+          <TableCell>{variation.location}</TableCell>
           <TableCell>{format(product.update_date, "dd-MMM-yyyy")}</TableCell>
           <TableCell>
             <div className="flex items-center gap-2">
