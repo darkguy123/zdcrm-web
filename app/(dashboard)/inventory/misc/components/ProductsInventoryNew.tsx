@@ -105,7 +105,7 @@ const schema = z.object({
 type FormType = z.infer<typeof schema>;
 
 const createProductInventory = async (data: FormType) => {
-  console.log(data);
+  // console.log(data);
   const res = await APIAxios.post("/inventory/create-product-inventory/", data);
   return res.data;
 };
