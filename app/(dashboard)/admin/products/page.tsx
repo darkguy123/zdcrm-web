@@ -409,11 +409,11 @@ const Page = () => {
 
       const createSubmissionData = {
         name: data.name,
-        category_id: data.category_id, // 👈 use category_id for create
+        category_id: data.category_id,
         external_id: data.external_id,
         is_active: data.is_active,
         image: imageUrl,
-        business: Number.parseInt(data.branch),
+        business_id: Number.parseInt(data.branch),
       }
 
 
