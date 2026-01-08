@@ -12,13 +12,9 @@ import {
 import ComparisonModal from '@/app/(dashboard)/report-analytics/misc/components/ComparisonModal';
 import { EnquiryChannelsChart, ClientTrackingChart, TrendsSeasonalitySalesChart, EmployeePerformanceChart } from '../misc/components/conversion-statistics';
 import ClientBehaviorChart from '../misc/components/charts/ClientBehaviorChart';
-import data from "../overview/data/overview.json";
 
 
 const page = () => {
-
-  const { clientBehavior } = data;
-
 
   return (
     <div className='p-4 sm:p-6'>
@@ -38,7 +34,7 @@ const page = () => {
         <EnquiryChannelsChart />
 
         {/* <ClientBehaviorChart /> */}
-        <ClientBehaviorChart clientBehavior={clientBehavior} />
+        <ClientBehaviorChart />
         <ClientTrackingChart />
 
         <TrendsSeasonalitySalesChart />

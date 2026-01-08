@@ -17,3 +17,8 @@ export const businessUrl = {
     getAllBranches: () =>
         `/business/list`,
 }
+
+export const customerUrl = {
+    getBehaviorStats: (queryString = "") =>
+        `/customer/behaviour-stats/${queryString}`,
+}

@@ -41,3 +41,5 @@ export const pickColor = (category?: string, idx?: number) => {
   // idx may be undefined → default to 0
   return defaultColors[(idx ?? 0) % defaultColors.length];
 };
+
+
