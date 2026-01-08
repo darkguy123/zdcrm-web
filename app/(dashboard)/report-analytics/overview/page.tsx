@@ -177,9 +177,20 @@ const OverviewPage: React.FC = () => {
         <FinancialOverviewSection showDetailed={false} />
       </div>
 
+
+      {/* Bottom row: client behavior, customers line, inventory */}
+      <div className="grid grid-cols-[repeat(auto-fit,_minmax(100%,_1fr))] md:grid-cols-[repeat(auto-fit,_minmax(20rem,_1fr))] gap-4">
+        <ClientBehaviorChart show_see_all={true} />
+
+        <InventoryChart
+          items={inventory_data}
+          title="Inventory Alert"
+          isLoading={isLoadingInventory}
+        />
+      </div>
       {/* Middle row: conversion map (placeholder) and traffic source */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="lg:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Conversion Statistics</CardTitle>
             <Button variant="ghost" size="sm">
@@ -214,7 +225,6 @@ const OverviewPage: React.FC = () => {
               </div>
 
               <div className="flex-1">
-                {/* Map placeholder - as image or simple SVG. For real app replace with map lib */}
                 <Image
                   src="/map.svg"
                   alt="Sales Location"
@@ -225,22 +235,11 @@ const OverviewPage: React.FC = () => {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         <section>
           <EnquiryChannelsChart from_overview={true} />
         </section>
-      </div>
-
-      {/* Bottom row: client behavior, customers line, inventory */}
-      <div className="grid grid-cols-[repeat(auto-fit,_minmax(100%,_1fr))] md:grid-cols-[repeat(auto-fit,_minmax(20rem,_1fr))] gap-4">
-        <ClientBehaviorChart clientBehavior={clientBehavior} show_see_all={true} />
-
-        <InventoryChart
-          items={inventory_data}
-          title="Inventory Alert"
-          isLoading={isLoadingInventory}
-        />
       </div>
     </div>
   );
