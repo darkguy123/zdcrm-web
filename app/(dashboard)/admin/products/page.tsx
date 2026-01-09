@@ -205,9 +205,15 @@ const Page = () => {
 
   const branchValueSafe = React.useMemo(() => {
     if (!selectedBranch) return "";
-    if (!branches || branches.length === 0) return "";
-    return branches?.some(b => String(b.id) === String(selectedBranch)) ? String(selectedBranch) : "";
+    if (!Array.isArray(branches) || branches.length === 0) return "";
+
+    return branches.some(
+      (b) => String(b.id) === String(selectedBranch)
+    )
+      ? String(selectedBranch)
+      : "";
   }, [selectedBranch, branches]);
+
 
   // Update category_name when category_id changes
   useEffect(() => {
@@ -401,9 +407,19 @@ const Page = () => {
         imageUrl = uploadResult.secure_url
       }
 
-      const submissionData = {
+      const createSubmissionData = {
         name: data.name,
-        category: data.category_id,
+        category_id: data.category_id,
+        external_id: data.external_id,
+        is_active: data.is_active,
+        image: imageUrl,
+        business_id: Number.parseInt(data.branch),
+      }
+
+
+      const editSubmissionData = {
+        name: data.name,
+        category: data.category_id, // 👈 retain category for edit
         external_id: data.external_id,
         is_active: data.is_active,
         image: imageUrl,
@@ -414,7 +430,7 @@ const Page = () => {
         updateProductMutation.mutate(
           {
             id: editingProductId,
-            data: submissionData,
+            data: editSubmissionData,
           },
           {
             onSuccess: () => {
@@ -484,7 +500,7 @@ const Page = () => {
 
         createProductMutation.mutate(
           {
-            ...submissionData,
+            ...createSubmissionData,
             variations: variationsData,
           },
           {
@@ -760,25 +776,6 @@ const Page = () => {
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
                         <h3 className="text-lg font-medium">Variations</h3>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            append({
-                              id: 0,
-                              size: "",
-                              layer: undefined,
-                              max_flowers: undefined,
-                              cost_price: "",
-                              selling_price: "",
-                            })
-                          }
-                          className="flex items-center gap-1"
-                        >
-                          <PlusCircle className="h-4 w-4" />
-                          Add Variation
-                        </Button>
                       </div>
 
                       {fields.map((field, index) => {
@@ -894,6 +891,26 @@ const Page = () => {
                           </div>
                         )
                       })}
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          append({
+                            id: 0,
+                            size: "",
+                            layer: undefined,
+                            max_flowers: undefined,
+                            cost_price: "",
+                            selling_price: "",
+                          })
+                        }
+                        className="flex items-center gap-1"
+                      >
+                        <PlusCircle className="h-4 w-4" />
+                        Add Variation
+                      </Button>
                     </div>
 
                     <SheetFooter className="pt-4">
