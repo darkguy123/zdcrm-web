@@ -9,6 +9,7 @@ interface FetchOptions {
   period?: "today" | "week" | "month" | "year" | "custom";
   date_from?: string;
   date_to?: string;
+  period_type?: "daily" | "weekly" | "monthly";
 }
 
 
