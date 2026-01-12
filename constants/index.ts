@@ -268,3 +268,14 @@ export const ZONES_OPTIONS = [
     label: "No Destination",
   },
 ];
+
+export const STORAGE_LOCATION_OPTIONS = [
+  { value: "Reception Shelf", label: "Reception Shelf" },
+  { value: "Main Store", label: "Main Store" },
+  { value: "Mini Store", label: "Mini Store" },
+  { value: "Processing Room", label: "Processing Room" },
+  { value: "Kitchen", label: "Kitchen" },
+  { value: "Cold Room", label: "Cold Room" },
+];
+
+
