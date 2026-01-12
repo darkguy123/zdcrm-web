@@ -34,6 +34,7 @@ import { useForm } from "react-hook-form";
 import { subMonths } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { ArrowDown2, Calendar, Category2, Check, Shop } from "iconsax-react";
+import { STORAGE_LOCATION_OPTIONS } from "@/constants";
 
 export default function ProductsInventoryDashboard() {
   const { data: branches, isLoading: branchesLoading } = useGetAllBranches();
@@ -48,6 +49,7 @@ export default function ProductsInventoryDashboard() {
     number | undefined
   >();
   const [selectedBranch, setSelectedBranch] = useState<number | undefined>();
+  const [selectedLocation, setSelectedLocation] = useState("");
 
   const today = new Date();
   const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
@@ -75,6 +77,7 @@ export default function ProductsInventoryDashboard() {
       search: debouncedSearchText,
       category: selectedCategory,
       branch: selectedBranch,
+      location: selectedLocation,
       date_from: watch("date").from?.toISOString().split("T")[0],
       date_to: watch("date").to?.toISOString().split("T")[0],
       period: watch("period"),
@@ -99,10 +102,16 @@ export default function ProductsInventoryDashboard() {
     setCurrentPage(1);
   };
 
+  const handleLocationChange = (location: string) => {
+    setSelectedLocation(location);
+    setCurrentPage(1);
+  };
+
   const clearFilters = () => {
     setSelectedBranch(undefined);
     setSelectedCategory(undefined);
     setSearchText("");
+    setSelectedLocation("");
     setCurrentPage(1);
   };
 
@@ -221,8 +230,17 @@ export default function ProductsInventoryDashboard() {
                     )}
                   </MenubarSubTrigger>
                   <MenubarSubContent>
-
-                    <MenubarItem>Location 1</MenubarItem>
+                    {STORAGE_LOCATION_OPTIONS.map((location) => (
+                      <MenubarItem
+                        key={location.value}
+                        onClick={() => handleLocationChange(location.value)}
+                      >
+                        {selectedLocation === location.value && (
+                          <Check className="mr-2 h-4 w-4" />
+                        )}
+                        {location.label}
+                      </MenubarItem>
+                    ))}
                   </MenubarSubContent>
                 </MenubarSub>
               </MenubarContent>

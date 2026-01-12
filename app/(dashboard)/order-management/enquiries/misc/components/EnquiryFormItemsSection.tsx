@@ -200,7 +200,7 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-2 xl:grid-cols-3 gap-8 mb-8">
+                    <div className="grid grid-cols-2 gap-8 mb-8">
                         <Controller
                             name={`items.${index}.category`}
                             control={control}
@@ -368,25 +368,6 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
                                             )
                                         }
 
-
-                                        <FormField
-                                            control={control}
-                                            name={`items.${index}.inventories.${0}.instruction`}
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormControl>
-                                                        <Input
-                                                            label="Instruction"
-                                                            placeholder='Enter instruction'
-                                                            {...field}
-                                                            hasError={!!errors.items?.[index]?.inventories?.[0]?.instruction}
-                                                            errorMessage={errors.items?.[index]?.inventories?.[0]?.instruction?.message}
-                                                            optional
-                                                        />
-                                                    </FormControl>
-                                                </FormItem>
-                                            )}
-                                        />
                                         {
                                             (categoryName === 'Cake' || categoryName === 'Cupcake') &&
                                             <FormField

@@ -193,7 +193,7 @@ const OrderItemsSection: React.FC<OrderItemsSectionProps> = ({
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-2 xl:grid-cols-3 gap-8 mb-8">
+                    <div className="grid grid-cols-2 xl:grid-cols-2 gap-8 mb-8">
                         <Controller
                             name={`items.${index}.category`}
                             control={control}
