@@ -29,6 +29,7 @@ import { useLoading } from "@/contexts";
 import useCloudinary from "@/hooks/useCloudinary";
 import { extractErrorMessage } from "@/utils/errors";
 import { useGetAllBranches } from "@/app/(dashboard)/admin/businesses/misc/api";
+import { STORAGE_LOCATION_OPTIONS } from "@/constants";
 
 const schema = z.object({
   name: z.string().min(1, { message: "Item name is required" }).max(255),
@@ -211,14 +212,7 @@ export default function NewStoreInventorySheet() {
                 {...field}
                 name="location"
                 value={field.value?.toString() || ""}
-                options={[
-                  { label: "Reception Shelf", value: "Reception Shelf" },
-                  { label: "Main Store", value: "Main Store" },
-                  { label: "Mini Store", value: "Mini Store" },
-                  { label: "Processing Room", value: "Processing Room" },
-                  { label: "Kitchen", value: "Kitchen" },
-                  { label: "Cold Room", value: "Cold Room" },
-                ]}
+                options={STORAGE_LOCATION_OPTIONS}
                 valueKey="value"
                 labelKey="label"
                 placeholder="Storage Location"

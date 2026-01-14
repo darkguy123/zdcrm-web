@@ -129,6 +129,7 @@ export default function StockInventoryDashboard() {
             </MenubarMenu>
           </Menubar>
         </div>
+        
         <div className="flex items-center gap-2">
 
 
