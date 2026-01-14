@@ -32,6 +32,7 @@ import useCloudinary from "@/hooks/useCloudinary";
 
 import CustomImagePicker from "./CustomImagePicker";
 import { useGetProductCategories } from "../api";
+import { STORAGE_LOCATION_OPTIONS } from "@/constants";
 
 const variationSchema = z.object({
   size: z.string().min(1, { message: "Size is required" }),
@@ -340,81 +341,74 @@ export default function NewProductInventorySheet() {
                       errorMessage={
                         errors.variations?.[index]?.quantity?.message
                       }
-                      // onChange={(e) => field.onChange(Number(e.target.value))}
+                    // onChange={(e) => field.onChange(Number(e.target.value))}
                     />
                   )}
                 />
 
-                    <Controller
-                      name={`variations.${index}.max_quantity_required`}
-                      control={control}
-                      render={({ field }) => (
-                        <AmountInput
-                          {...field}
-                          {...register(`variations.${index}.max_quantity_required`, {
-                            valueAsNumber: true,
-                          })}
-                          type="number"
-                          label="Max Quantity Required"
-                          placeholder="Max Quantity"
-                          pattern="^[0-9]*$"
-                          hasError={!!errors.variations?.[index]?.max_quantity_required}
-                          errorMessage={
-                            errors.variations?.[index]?.max_quantity_required?.message
-                          }
-                        />
-                      )}
+                <Controller
+                  name={`variations.${index}.max_quantity_required`}
+                  control={control}
+                  render={({ field }) => (
+                    <AmountInput
+                      {...field}
+                      {...register(`variations.${index}.max_quantity_required`, {
+                        valueAsNumber: true,
+                      })}
+                      type="number"
+                      label="Max Quantity Required"
+                      placeholder="Max Quantity"
+                      pattern="^[0-9]*$"
+                      hasError={!!errors.variations?.[index]?.max_quantity_required}
+                      errorMessage={
+                        errors.variations?.[index]?.max_quantity_required?.message
+                      }
                     />
+                  )}
+                />
 
-                    <Controller
-                      name={`variations.${index}.minimum_quantity_required`}
-                      control={control}
-                      render={({ field }) => (
-                        <AmountInput
-                          {...field}
-                          {...register(`variations.${index}.minimum_quantity_required`, {
-                            valueAsNumber: true,
-                          })}
-                          type="number"
-                          label="Min Quantity Required"
-                          placeholder="Min Quantity"
-                          pattern="^[0-9]*$"
-                          hasError={!!errors.variations?.[index]?.minimum_quantity_required}
-                          errorMessage={
-                            errors.variations?.[index]?.minimum_quantity_required?.message
-                          }
-                        />
-                      )}
+                <Controller
+                  name={`variations.${index}.minimum_quantity_required`}
+                  control={control}
+                  render={({ field }) => (
+                    <AmountInput
+                      {...field}
+                      {...register(`variations.${index}.minimum_quantity_required`, {
+                        valueAsNumber: true,
+                      })}
+                      type="number"
+                      label="Min Quantity Required"
+                      placeholder="Min Quantity"
+                      pattern="^[0-9]*$"
+                      hasError={!!errors.variations?.[index]?.minimum_quantity_required}
+                      errorMessage={
+                        errors.variations?.[index]?.minimum_quantity_required?.message
+                      }
                     />
+                  )}
+                />
 
-                    <Controller
+                <Controller
+                  name={`variations.${index}.location`}
+                  control={control}
+                  render={({ field }) => (
+                    <SelectSingleCombo
+                      {...field}
                       name={`variations.${index}.location`}
-                      control={control}
-                      render={({ field }) => (
-                        <SelectSingleCombo
-                          {...field}
-                          name={`variations.${index}.location`}
-                          value={field.value?.toString() || ""}
-                          options={[
-                            { label: "Reception Shelf", value: "Reception Shelf" },
-                            { label: "Main Store", value: "Main Store" },
-                            { label: "Mini Store", value: "Mini Store" },
-                            { label: "Processing Room", value: "Processing Room" },
-                            { label: "Kitchen", value: "Kitchen" },
-                            { label: "Cold Room", value: "Cold Room" },
-                          ]}
-                          valueKey="value"
-                          labelKey="label"
-                          placeholder="Storage Location"
-                          onChange={(value) => field.onChange(value)}
-                          isLoadingOptions={categoriesLoading}
-                          hasError={!!errors.variations?.[index]?.location}
-                          errorMessage={
-                            errors.variations?.[index]?.location?.message
-                          }
-                        />
-                      )}
+                      value={field.value?.toString() || ""}
+                      options={STORAGE_LOCATION_OPTIONS}
+                      valueKey="value"
+                      labelKey="label"
+                      placeholder="Storage Location"
+                      onChange={(value) => field.onChange(value)}
+                      isLoadingOptions={categoriesLoading}
+                      hasError={!!errors.variations?.[index]?.location}
+                      errorMessage={
+                        errors.variations?.[index]?.location?.message
+                      }
                     />
+                  )}
+                />
 
                 {index > 0 && (
                   <Button

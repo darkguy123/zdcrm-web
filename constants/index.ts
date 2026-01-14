@@ -276,6 +276,5 @@ export const STORAGE_LOCATION_OPTIONS = [
   { value: "Processing Room", label: "Processing Room" },
   { value: "Kitchen", label: "Kitchen" },
   { value: "Cold Room", label: "Cold Room" },
+  { value: "Not In Stock", label: "Not In Stock" },
 ];
-
-
