@@ -245,7 +245,8 @@ const StockInventoryTable: React.FC<StockInventoryTableProps> = ({
                 <TableHead>Variation</TableHead>
                 <TableHead>Quantity In Stock</TableHead>
                 <TableHead>Storage Location</TableHead>
-                <TableHead>Reorder Required</TableHead>
+                {/* <TableHead>Reorder Required</TableHead> */}
+                <TableHead>Quantity Sold</TableHead>
                 <TableHead>Last Updated</TableHead>
                 <TableHead></TableHead>
               </TableRow>

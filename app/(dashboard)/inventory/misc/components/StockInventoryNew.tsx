@@ -37,6 +37,17 @@ import { useGetStockCategories } from "../api";
 import { useGetAllBranches } from "@/app/(dashboard)/admin/businesses/misc/api/getAllBranches";
 import { error } from "console";
 
+type ApiVariation = {
+  location: string;
+  minimum_quantity_required: number;
+  max_quantity_required: number;
+  size?: string;
+  color?: string;
+  flavour?: string;
+  quantity?: number;
+};
+
+
 // const variationSchema = z.object({
 //   size: z.string().optional(),
 //   color: z.string().optional(),
@@ -130,26 +141,32 @@ const variationSchema = z.object({
   location: z.string().min(1, "Storage Location is required"),
 
   minimum_quantity_required: z.coerce
-    .number()
+    .number({ invalid_type_error: "Minimum Quantity is required" })
     .int()
-    .nonnegative("Minimum quantity must be 0 or more"),
+    .nonnegative(),
 
   max_quantity_required: z.coerce
-    .number()
+    .number({ invalid_type_error: "Maximum Quantity is required" })
     .int()
-    .nonnegative("Maximum quantity must be 0 or more"),
+    .nonnegative(),
 
-  // optional
-  size: z.string().optional(),
+  size: z.string().min(1, "Size is required"),
+
+  quantity: z.coerce.number().optional(),
   color: z.string().optional(),
   flavour: z.string().optional(),
-  quantity: z.coerce.number().optional(),
 });
+
 
 
 const schema = z.object({
   name: z.string().min(1, "Item name is required"),
-  category: z.number(),
+
+  category: z.coerce
+    .number({ invalid_type_error: "Category is required" })
+    .int()
+    .refine((v) => v > 0, "Category is required"),
+
   description: z.string().optional(),
 
   image_one: z
@@ -162,6 +179,7 @@ const schema = z.object({
 
   variations: z.array(variationSchema).min(1),
 });
+
 
 
 type StockInventoryPayload = Omit<FormType, "image_one"> & {
@@ -193,17 +211,20 @@ export default function NewInventorySheet() {
     resolver: zodResolver(schema),
     defaultValues: {
       name: "",
-      category: undefined,
+      category: 0,
       description: "",
-      image_one: undefined,
-      variations: [{
-        location: "",
-        minimum_quantity_required: undefined,
-        max_quantity_required: undefined,
-        size: "",
-        quantity: undefined,
-      }],
-    }
+      image_one: null,
+      variations: [
+        {
+          location: "",
+          minimum_quantity_required: 0,
+          max_quantity_required: 0,
+          size: "",
+          quantity: undefined,
+        },
+      ],
+    },
+
 
   });
 
@@ -241,37 +262,28 @@ export default function NewInventorySheet() {
   });
 
   const onSubmit = async (data: FormType) => {
-    if (data.category === 8) {
-      data.variations.forEach((variation) => {
-        delete variation.color;
-        delete variation.flavour;
-      });
-    } else if (data.category === 9) {
-      data.variations.forEach((variation) => {
-        delete variation.size;
-        delete variation.flavour;
-      });
-    } else if (data.category === 10) {
-      data.variations.forEach((variation) => {
-        delete variation.size;
-        delete variation.color;
-      });
-    }
     let image_one: string | undefined;
 
-    const imageFile = data.image_one;
-
-    if (imageFile instanceof File) {
-      const uploaded = await uploadToCloudinary(imageFile);
+    if (data.image_one instanceof File) {
+      const uploaded = await uploadToCloudinary(data.image_one);
       image_one = uploaded.secure_url;
     }
 
-    const dataToSubmit = {
-      ...data,
-      image_one,
+    const payload = {
+      name: data.name,
+      category: data.category,
+      description: data.description,
+      variations: data.variations.map((v) => ({
+        location: v.location,
+        minimum_quantity_required: v.minimum_quantity_required,
+        max_quantity_required: v.max_quantity_required,
+        size: v.size,
+        quantity: v.quantity,
+      })),
+      ...(image_one ? { image_one } : {}),
     };
 
-    createStockInvetory(dataToSubmit);
+    createStockInvetory(payload);
   };
 
   const selectedCategoryName = categories?.find(
@@ -598,7 +610,7 @@ export default function NewInventorySheet() {
             </div>
           </form>
         </SheetContent>
-      </Sheet>
+      </Sheet >
 
       <ErrorModal
         heading="An error Occured"
