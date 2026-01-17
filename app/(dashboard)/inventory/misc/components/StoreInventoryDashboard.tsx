@@ -34,6 +34,7 @@ import { DateRange } from "react-day-picker";
 import { useForm } from "react-hook-form";
 import { subMonths } from "date-fns";
 import { ArrowDown2, Category2, Check, Shop } from "iconsax-react";
+import { STORAGE_LOCATION_OPTIONS } from "@/constants";
 
 export default function StoreInventoryDashboard() {
   const { data: categories, isLoading: categoriesLoading } = useGetCategories();
@@ -45,6 +46,7 @@ export default function StoreInventoryDashboard() {
   const [selectedCategory, setSelectedCategory] = useState<
     number | undefined
   >();
+  const [selectedLocation, setSelectedLocation] = useState("");
 
   const debouncedSearchText = useDebounce(searchText, 300);
 
@@ -53,6 +55,7 @@ export default function StoreInventoryDashboard() {
     size: pageSize,
     search: debouncedSearchText,
     category: selectedCategory,
+    location: selectedLocation,
   });
 
   const [selectedBranch, setSelectedBranch] = useState<number | undefined>();
@@ -71,6 +74,11 @@ export default function StoreInventoryDashboard() {
 
   const handleCategoryChange = (categoryId: number) => {
     setSelectedCategory(categoryId);
+    setCurrentPage(1);
+  };
+
+  const handleLocationChange = (location: string) => {
+    setSelectedLocation(location);
     setCurrentPage(1);
   };
 
@@ -110,7 +118,7 @@ export default function StoreInventoryDashboard() {
                 )}
               </MenubarTrigger>
               <MenubarContent>
-                <SelectBranchCombo
+                {/* <SelectBranchCombo
                   noLabel
                   value={selectedBranch ? String(selectedBranch) : undefined}
                   dropdownItem={true}
@@ -118,15 +126,31 @@ export default function StoreInventoryDashboard() {
                   name="branch-filter"
                   variant="unstyled"
                   className="relative py-3 flex items-center gap-2"
-                />
+                /> */}
 
                 <MenubarSub>
                   <MenubarSubTrigger className="relative py-3 flex items-center gap-2">
                     <Shop size={18} />
                     Storage Location
+                    {selectedCategory && (
+                      <Circle
+                        size={6}
+                        className="absolute top-0 right-0 text-[#FF4D4F] bg-[#FF4D4F] rounded-full"
+                      />
+                    )}
                   </MenubarSubTrigger>
                   <MenubarSubContent>
-                    <MenubarItem>Location 1</MenubarItem>
+                    {STORAGE_LOCATION_OPTIONS.map((location) => (
+                      <MenubarItem
+                        key={location.value}
+                        onClick={() => handleLocationChange(location.value)}
+                      >
+                        {selectedLocation === location.value && (
+                          <Check className="mr-2 h-4 w-4" />
+                        )}
+                        {location.label}
+                      </MenubarItem>
+                    ))}
                   </MenubarSubContent>
                 </MenubarSub>
               </MenubarContent>

@@ -243,7 +243,7 @@ const ProductsInventory: React.FC<ProductsInventoryTableProps> = ({
               <TableHead>Gift Name</TableHead>
               <TableHead>Variation</TableHead>
               <TableHead>Quantity In Stock</TableHead>
-              <TableHead>Re-order Required</TableHead>
+              <TableHead>Quantity Sold</TableHead>
               <TableHead>Cost Price/Unit</TableHead>
               <TableHead>Storage Location</TableHead>
               <TableHead>Last Updated</TableHead>

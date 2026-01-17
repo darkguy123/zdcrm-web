@@ -14,7 +14,7 @@ import {
   SelectSingleCombo,
   Textarea,
 } from "@/components/ui";
-import { PRODUCT_TYPES_OPTIONS } from "@/constants";
+import { PRODUCT_TYPES_OPTIONS, STORAGE_LOCATION_OPTIONS } from "@/constants";
 import useCloudinary from "@/hooks/useCloudinary";
 import { useLoading } from "@/contexts";
 import useErrorModalState from "@/hooks/useErrorModalState";
@@ -37,97 +37,160 @@ import { useGetStockCategories } from "../api";
 import { useGetAllBranches } from "@/app/(dashboard)/admin/businesses/misc/api/getAllBranches";
 import { error } from "console";
 
-const variationSchema = z.object({
-  size: z.string().optional(),
-  color: z.string().optional(),
-  flavour: z.string().optional(),
-  quantity: z
-    .number()
-    .int()
-    .positive({ message: "Quantity must be a positive integer" }),
-  max_quantity_required: z
-    .number()
-    .int()
-    .nonnegative({ message: "Max quantity must be 0 or more" })
-    .optional(),
-  minimum_quantity_required: z
-    .number()
-    .int()
-    .nonnegative({ message: "Min quantity must be 0 or more" })
-    .optional(),
-  location: z.string().min(1, { message: "Location is required" }).max(255),
-});
+type ApiVariation = {
+  location: string;
+  minimum_quantity_required: number;
+  max_quantity_required: number;
+  size?: string;
+  color?: string;
+  flavour?: string;
+  quantity?: number;
+};
+
+
+// const variationSchema = z.object({
+//   size: z.string().optional(),
+//   color: z.string().optional(),
+//   flavour: z.string().optional(),
+//   quantity: z
+//     .number()
+//     .int()
+//     .positive({ message: "Quantity must be a positive integer" }),
+//   max_quantity_required: z
+//     .number()
+//     .int()
+//     .nonnegative({ message: "Max quantity must be 0 or more" })
+//     .optional(),
+//   minimum_quantity_required: z
+//     .number()
+//     .int()
+//     .nonnegative({ message: "Min quantity must be 0 or more" })
+//     .optional(),
+//   location: z.string().min(1, { message: "Location is required" }).max(255),
+// });
+
+// const MAX_FILE_SIZE = 1000000;
+
+// const schema = z
+//   .object({
+//     name: z.string().min(1, { message: "Item name is required" }).max(255),
+//     description: z
+//       .string()
+//       .min(10, { message: "Item description is required" })
+//       .max(300),
+//     category: z.number(),
+//     // branch: z.number({ required_error: "Branch is required" }),
+//     image_one: z
+//       .any()
+//       .nullable()
+//       .refine(
+//         (file) => {
+//           if (!file) {
+//             throw z.ZodError.create([
+//               {
+//                 path: ["image_one"],
+//                 message: "Please select a file.",
+//                 code: "custom",
+//               },
+//             ]);
+//           }
+//           if (!file.type.startsWith("image/")) {
+//             throw z.ZodError.create([
+//               {
+//                 path: ["image_one"],
+//                 message: "Please select an image file.",
+//                 code: "custom",
+//               },
+//             ]);
+//           }
+//           return file.size <= MAX_FILE_SIZE;
+//         },
+
+//         {
+//           message: "Max image size is 10MB.",
+//         }
+//       ),
+//     variations: z
+//       .array(variationSchema)
+//       .min(1, { message: "At least one variation is required" }),
+//   })
+//   .refine(
+//     (data) => {
+//       const category = data.category;
+//       return data.variations.every((variation) => {
+//         if (category === 8) {
+//           return !!variation.size;
+//         } else if (category === 9) {
+//           return !!variation.color;
+//         } else if (category === 10) {
+//           return !!variation.flavour;
+//         }
+//         return true;
+//       });
+//     },
+//     {
+//       path: ["variations"],
+//       message:
+//         "Variations must include the correct fields based on the selected category",
+//     }
+//   );
 
 const MAX_FILE_SIZE = 1000000;
 
-const schema = z
-  .object({
-    name: z.string().min(1, { message: "Item name is required" }).max(255),
-    description: z
-      .string()
-      .min(10, { message: "Item description is required" })
-      .max(300),
-    category: z.number(),
-    // branch: z.number({ required_error: "Branch is required" }),
-    image_one: z
-      .any()
-      .nullable()
-      .refine(
-        (file) => {
-          if (!file) {
-            throw z.ZodError.create([
-              {
-                path: ["image_one"],
-                message: "Please select a file.",
-                code: "custom",
-              },
-            ]);
-          }
-          if (!file.type.startsWith("image/")) {
-            throw z.ZodError.create([
-              {
-                path: ["image_one"],
-                message: "Please select an image file.",
-                code: "custom",
-              },
-            ]);
-          }
-          return file.size <= MAX_FILE_SIZE;
-        },
+const variationSchema = z.object({
+  location: z.string().min(1, "Storage Location is required"),
 
-        {
-          message: "Max image size is 10MB.",
-        }
-      ),
-    variations: z
-      .array(variationSchema)
-      .min(1, { message: "At least one variation is required" }),
-  })
-  .refine(
-    (data) => {
-      const category = data.category;
-      return data.variations.every((variation) => {
-        if (category === 8) {
-          return !!variation.size;
-        } else if (category === 9) {
-          return !!variation.color;
-        } else if (category === 10) {
-          return !!variation.flavour;
-        }
-        return true;
-      });
-    },
-    {
-      path: ["variations"],
-      message:
-        "Variations must include the correct fields based on the selected category",
-    }
-  );
+  minimum_quantity_required: z.coerce
+    .number({ invalid_type_error: "Minimum Quantity is required" })
+    .int()
+    .nonnegative(),
+
+  max_quantity_required: z.coerce
+    .number({ invalid_type_error: "Maximum Quantity is required" })
+    .int()
+    .nonnegative(),
+
+  size: z.string().min(1, "Size is required"),
+
+  quantity: z.coerce.number().optional(),
+  color: z.string().optional(),
+  flavour: z.string().optional(),
+});
+
+
+
+const schema = z.object({
+  name: z.string().min(1, "Item name is required"),
+
+  category: z.coerce
+    .number({ invalid_type_error: "Category is required" })
+    .int()
+    .refine((v) => v > 0, "Category is required"),
+
+  description: z.string().optional(),
+
+  image_one: z
+    .instanceof(File)
+    .nullable()
+    .optional()
+    .refine((file) => !file || file.size <= MAX_FILE_SIZE, {
+      message: "Image must be less than 1MB",
+    }),
+
+  variations: z.array(variationSchema).min(1),
+});
+
+
+
+type StockInventoryPayload = Omit<FormType, "image_one"> & {
+  image_one?: string;
+};
+
 
 type FormType = z.infer<typeof schema>;
 
 const createStockInventory = async (
-  data: FormType & { image_one?: string }
+  data: StockInventoryPayload
 ) => {
   console.log(data);
   const res = await APIAxios.post("/inventory/create-stock-inventory/", data);
@@ -147,10 +210,22 @@ export default function NewInventorySheet() {
   } = useForm<FormType>({
     resolver: zodResolver(schema),
     defaultValues: {
+      name: "",
+      category: 0,
+      description: "",
       image_one: null,
-      category: 8,
-      variations: [{ size: "4", quantity: 1 }],
+      variations: [
+        {
+          location: "",
+          minimum_quantity_required: 0,
+          max_quantity_required: 0,
+          size: "",
+          quantity: undefined,
+        },
+      ],
     },
+
+
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -187,33 +262,28 @@ export default function NewInventorySheet() {
   });
 
   const onSubmit = async (data: FormType) => {
-    if (data.category === 8) {
-      data.variations.forEach((variation) => {
-        delete variation.color;
-        delete variation.flavour;
-      });
-    } else if (data.category === 9) {
-      data.variations.forEach((variation) => {
-        delete variation.size;
-        delete variation.flavour;
-      });
-    } else if (data.category === 10) {
-      data.variations.forEach((variation) => {
-        delete variation.size;
-        delete variation.color;
-      });
-    }
     let image_one: string | undefined;
-    const imageFile = data.image_one;
-    if (data.image_one) {
-      const data = await uploadToCloudinary(imageFile);
-      image_one = data.secure_url;
+
+    if (data.image_one instanceof File) {
+      const uploaded = await uploadToCloudinary(data.image_one);
+      image_one = uploaded.secure_url;
     }
-    const dataToSubmit = {
-      ...data,
-      image_one: imageFile ? image_one : undefined,
+
+    const payload = {
+      name: data.name,
+      category: data.category,
+      description: data.description,
+      variations: data.variations.map((v) => ({
+        location: v.location,
+        minimum_quantity_required: v.minimum_quantity_required,
+        max_quantity_required: v.max_quantity_required,
+        size: v.size,
+        quantity: v.quantity,
+      })),
+      ...(image_one ? { image_one } : {}),
     };
-    createStockInvetory(dataToSubmit);
+
+    createStockInvetory(payload);
   };
 
   const selectedCategoryName = categories?.find(
@@ -406,9 +476,7 @@ export default function NewInventorySheet() {
                   render={({ field }) => (
                     <AmountInput
                       {...field}
-                      {...register(`variations.${index}.quantity`, {
-                        valueAsNumber: true,
-                      })}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
                       type="number"
                       label="Quantity"
                       placeholder="Quantity"
@@ -482,14 +550,7 @@ export default function NewInventorySheet() {
                       {...field}
                       name={`variations.${index}.location`}
                       value={field.value?.toString() || ""}
-                      options={[
-                        { label: "Reception Shelf", value: "Reception Shelf" },
-                        { label: "Main Store", value: "Main Store" },
-                        { label: "Mini Store", value: "Mini Store" },
-                        { label: "Processing Room", value: "Processing Room" },
-                        { label: "Kitchen", value: "Kitchen" },
-                        { label: "Cold Room", value: "Cold Room" },
-                      ]}
+                      options={STORAGE_LOCATION_OPTIONS}
                       valueKey="value"
                       labelKey="label"
                       placeholder="Storage Location"
@@ -517,11 +578,20 @@ export default function NewInventorySheet() {
 
             <Button
               type="button"
-              onClick={() => append({ quantity: 1, size: "", location: "" })}
+              onClick={() =>
+                append({
+                  location: "",
+                  minimum_quantity_required: 0,
+                  max_quantity_required: 0,
+                  size: "",
+                  quantity: undefined,
+                })
+              }
               variant="outline"
             >
               Add Variation
             </Button>
+
 
             <div className="flex items-center gap-4 mt-auto">
               <SheetClose asChild>
@@ -540,7 +610,7 @@ export default function NewInventorySheet() {
             </div>
           </form>
         </SheetContent>
-      </Sheet>
+      </Sheet >
 
       <ErrorModal
         heading="An error Occured"

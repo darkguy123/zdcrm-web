@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, RefreshCcw, Check } from 'lucide-react';
+import { Search, RefreshCcw, Check, Circle } from 'lucide-react';
 import {
   Button,
   Input,
@@ -17,16 +17,20 @@ import {
   PaginationLink,
   PaginationNext,
   RangeAndCustomDatePicker,
+  MenubarSub,
+  MenubarSubTrigger,
+  MenubarSubContent,
 } from "@/components/ui";
 import StockInventoryTable from "./StockInventoryTable";
 import TabBar from "@/components/TabBar";
-import { ArrowDown2 } from "iconsax-react";
+import { ArrowDown2, Calendar, Category2, Shop } from "iconsax-react";
 import { useGetStockCategories, useGetStockInventory } from "../api";
 import NewInventorySheet from "./StockInventoryNew";
 import { useDebounce } from "@/hooks";
 import { subMonths } from "date-fns";
 import { useForm } from "react-hook-form";
 import { DateRange } from "react-day-picker";
+import { STORAGE_LOCATION_OPTIONS } from "@/constants";
 
 export default function StockInventoryDashboard() {
   const [activeTab, setActiveTab] = useState("All Stock Inventory");
@@ -37,6 +41,7 @@ export default function StockInventoryDashboard() {
 
   const debouncedSearchText = useDebounce(searchText, 300);
   const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
+  const [selectedLocation, setSelectedLocation] = useState("");
 
   const { data: categories, isLoading: categoriesLoading } = useGetStockCategories();
   const today = new Date();
@@ -62,10 +67,11 @@ export default function StockInventoryDashboard() {
     size: pageSize,
     search: debouncedSearchText,
     category: selectedCategory,
-    variation: selectedVariation,
-    date_from: watch('date').from?.toISOString().split('T')[0],
-    date_to: watch('date').to?.toISOString().split('T')[0],
-    period: watch('period'),
+    // branch: selectedBranch,
+    location: selectedLocation,
+    date_from: watch("date").from?.toISOString().split("T")[0],
+    date_to: watch("date").to?.toISOString().split("T")[0],
+    period: watch("period"),
   });
 
   const tabs = [{ name: "All Stock Inventory", count: data?.count || 0 }];
@@ -84,6 +90,11 @@ export default function StockInventoryDashboard() {
     setCurrentPage(1);
   };
 
+  const handleLocationChange = (location: string) => {
+    setSelectedLocation(location);
+    setCurrentPage(1);
+  };
+
   const handleVariationChange = (variation: string) => {
     setSelectedVariation(variation);
     setCurrentPage(1);
@@ -91,6 +102,7 @@ export default function StockInventoryDashboard() {
   const clearFilters = () => {
     setSelectedCategory(undefined);
     setSearchText("");
+    setSelectedLocation("");
     setCurrentPage(1);
   }
 
@@ -109,47 +121,129 @@ export default function StockInventoryDashboard() {
           />
 
 
-          <Menubar>
+          <Menubar className="!p-0">
             <MenubarMenu>
-              <MenubarTrigger className="flex items-center gap-4 text-xs cursor-pointer text-[#8B909A]">
-                Filter by Category <ArrowDown2 size={16} />
+              <MenubarTrigger className="relative flex items-center gap-4 text-xs cursor-pointer text-[#8B909A] !h-10">
+                Filter orders by <ArrowDown2 size={16} />
+                {(selectedCategory || debouncedSearchText) && (
+                  <Circle
+                    size={10}
+                    className="absolute top-0 right-0 text-[#FF4D4F] bg-[#FF4D4F] rounded-full"
+                  />
+                )}
               </MenubarTrigger>
               <MenubarContent>
-                {
-                  categories?.map((category) => (
-                    <MenubarItem key={category.id} onClick={() => handleCategoryChange(category.id)}>
-                      {
-                        selectedCategory === category.id && <Check className='mr-2 h-4 w-4' />
-                      }
-                      {category.name}
-                    </MenubarItem>
-                  ))
-                }
+                <MenubarSub>
+                  <MenubarSubTrigger className="py-3 flex items-center gap-2">
+                    <Calendar size={18} />
+                    Date Range
+                    {watch("date.from") &&
+                      watch("date.to") &&
+                      (watch("date.from")?.getTime() !==
+                        monthsAgo.getTime() ||
+                        watch("date.to")?.getTime() !==
+                        tomorrow.getTime()) && (
+                        <Circle
+                          size={6}
+                          className="absolute top-0 right-0 text-[#FF4D4F] bg-[#FF4D4F] rounded-full"
+                        />
+                      )}
+                  </MenubarSubTrigger>
+                  <MenubarSubContent>
+                    <RangeAndCustomDatePicker
+                      className="max-w-max"
+                      variant="light"
+                      size="thin"
+                      onChange={(value) => {
+                        if (
+                          value.dateType === "custom" &&
+                          value.from &&
+                          value.to
+                        ) {
+                          setValue("date", {
+                            from: value.from,
+                            to: value.to,
+                          });
+                          setValue("period", "custom");
+                        } else {
+                          setValue(
+                            "period",
+                            value.dateType as
+                            | "today"
+                            | "week"
+                            | "month"
+                            | "year"
+                            | "custom"
+                          );
+                        }
+                      }}
+                      value={{
+                        dateType: watch("period"),
+                        from: watch("date").from,
+                        to: watch("date").to,
+                      }}
+                    />
+                  </MenubarSubContent>
+                </MenubarSub>
+
+                <MenubarSub>
+                  <MenubarSubTrigger className="relative py-3 flex items-center gap-2">
+                    <Category2 size={18} />
+                    Category
+                    {selectedCategory && (
+                      <Circle
+                        size={6}
+                        className="absolute top-0 right-0 text-[#FF4D4F] bg-[#FF4D4F] rounded-full"
+                      />
+                    )}
+                  </MenubarSubTrigger>
+                  <MenubarSubContent>
+                    {categories?.map((category) => (
+                      <MenubarItem
+                        key={category.id}
+                        onClick={() => handleCategoryChange(category.id)}
+                      >
+                        {selectedCategory === category.id && (
+                          <Check className="mr-2 h-4 w-4" />
+                        )}
+                        {category.name}
+                      </MenubarItem>
+                    ))}
+                  </MenubarSubContent>
+                </MenubarSub>
+
+                <MenubarSub>
+                  <MenubarSubTrigger className="relative py-3 flex items-center gap-2">
+                    <Shop size={18} />
+                    Storage Location
+                    {selectedCategory && (
+                      <Circle
+                        size={6}
+                        className="absolute top-0 right-0 text-[#FF4D4F] bg-[#FF4D4F] rounded-full"
+                      />
+                    )}
+                  </MenubarSubTrigger>
+                  <MenubarSubContent>
+                    {STORAGE_LOCATION_OPTIONS.map((location) => (
+                      <MenubarItem
+                        key={location.value}
+                        onClick={() => handleLocationChange(location.value)}
+                      >
+                        {selectedLocation === location.value && (
+                          <Check className="mr-2 h-4 w-4" />
+                        )}
+                        {location.label}
+                      </MenubarItem>
+                    ))}
+                  </MenubarSubContent>
+                </MenubarSub>
               </MenubarContent>
             </MenubarMenu>
           </Menubar>
         </div>
+
         <div className="flex items-center gap-2">
-
-
-          <RangeAndCustomDatePicker
-            className="max-w-max"
-            variant="light"
-            size="thin"
-            onChange={(value) => {
-              if (value.dateType === 'custom' && value.from && value.to) {
-                setValue('date', { from: value.from, to: value.to });
-                setValue('period', 'custom');
-              } else {
-                setValue('period', value.dateType as "today" | "week" | "month" | "year" | "custom");
-              }
-            }}
-            value={{
-              dateType: watch('period'),
-              from: watch('date').from,
-              to: watch('date').to
-            }}
-          /> {
+        {
             (selectedCategory || debouncedSearchText) && (
               <Button
                 variant='outline'
