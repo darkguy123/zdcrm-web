@@ -23,6 +23,7 @@ import { ProductSelector } from '../../../misc/components';
 import SelectMultiCombo from '@/components/ui/selectMultipleSpecialCombo';
 import OrderFormStockInventorySelector, { enquiryItemType } from '../../../misc/components/OrderFormStockInventorySelector';
 import OrderFormProductInventorySelector from '../../../misc/components/OrderFormProductInventorySelector';
+import { useGetAllBusiness } from '@/mutations/business.mutation';
 
 
 interface EnquiryFormItemsSectionProps {
@@ -59,6 +60,7 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
 
 }) => {
     const { data: categories, isLoading: categoriesLoading } = useGetCategories();
+    // const { data: categories, isLoading: categoriesLoading } = useGetAllBusiness()
     const { data: propertyOptions, isLoading: isLoadingPropertyOptions } = useGetPropertyOptions()
     const { data: products, isLoading: productsLoading, isFetching: productsFetching } = useGetProducts({
         category: watch(`items.${index}.category`)

@@ -45,7 +45,7 @@ import { useGetCategories } from "../../inventory/misc/api"
 import { SmallSpinner } from "@/icons/core"
 import { useUpdateProductVariationStatus } from "./misc/api/editProduct"
 import { Copy } from "iconsax-react"
-import { useGetAllBranches } from "@/mutations/business.mutation"
+import { useGetAllBusiness } from "@/mutations/business.mutation"
 import Image from "next/image"
 
 interface ProductFormValues {
@@ -113,7 +113,7 @@ const useAddVariation = () => {
 }
 
 const Page = () => {
-  const { data: branches, isLoading: branchesLoading } = useGetAllBranches()
+  const { data: branches, isLoading: branchesLoading } = useGetAllBusiness()
 
   // Boolean states
   const isSheetOpen = useBooleanStateControl(false)
