@@ -31,69 +31,55 @@ import { extractErrorMessage } from "@/utils/errors";
 import { useGetAllBranches } from "@/app/(dashboard)/admin/businesses/misc/api";
 import { STORAGE_LOCATION_OPTIONS } from "@/constants";
 
-const schema = z.object({
-  name: z.string().min(1, { message: "Item name is required" }).max(255),
-  description: z
-    .string()
-    .min(10, { message: "Item description must be at least 10 characters long" })
-    .max(500, { message: "Item description must be at most 500 characters long" }),
-  location: z.string().min(1, { message: "Storage location is required" }),
-  // branch: z.number(),
-  quantity: z
-    .number()
-    .int()
-    .positive({ message: "Quantity must be a positive integer" }),
-  max_quantity_required: z
-    .number()
-    .int()
-    .positive({ message: "Max quantity must be a positive integer" }),
-  minimum_quantity_required: z
-    .number()
-    .int()
-    .positive({ message: "Min quantity must be a positive integer" }),
-  cost_price: z
-    .number()
-    .int()
-    .positive({ message: "Cost price must be a positive integer" }),
-  image_one: z
-    .any()
-    .nullable()
-    .refine(
-      (file) => {
-        if (!file) {
-          throw z.ZodError.create([
-            {
-              path: ["image_one"],
-              message: "Please select a file.",
-              code: "custom",
-            },
-          ]);
-        }
-        if (!file.type.startsWith("image/")) {
-          throw z.ZodError.create([
-            {
-              path: ["image_one"],
-              message: "Please select an image file.",
-              code: "custom",
-            },
-          ]);
-        }
-        return file.size <= 1000000;
-      },
 
-      {
-        message: "Max image size is 10MB.",
-      }
-    ),
-});
+
+const schema = z
+  .object({
+    name: z.string().min(1, "Item name is required").max(255),
+
+    description: z
+      .string()
+      .min(10, "Item description must be at least 10 characters")
+      .max(500).optional(),
+
+    location: z.string().min(1, "Storage location is required"),
+
+    quantity: z.coerce.number().int().positive().optional(),
+    minimum_quantity_required: z.coerce.number().int().positive().optional(),
+    max_quantity_required: z.coerce.number().int().positive().optional(),
+    cost_price: z.coerce.number().int().positive().optional(),
+
+    image_one: z
+      .instanceof(File)
+      .optional()
+      .refine((file) => !file || file.size <= 1_000_000, {
+        message: "Image must be less than 1MB",
+      }),
+  })
+  .refine(
+    (data) =>
+      data.quantity !== undefined &&
+      data.minimum_quantity_required !== undefined &&
+      data.max_quantity_required !== undefined &&
+      data.cost_price !== undefined,
+    {
+      message: "All quantity and price fields are required",
+      path: ["quantity"],
+    }
+  );
+
+type StoreInventoryPayload = Omit<FormType, "image_one"> & {
+  image_one?: string;
+};
+
 
 type FormType = z.infer<typeof schema>;
 
-const createStoreInventory = async (data: FormType) => {
-  // console.log(data);
-  const res = await APIAxios.post("/inventory/create-store-inventory/", data, {
-    // headers: { 'Content-Type': 'multipart/form-data' },
-  });
+const createStoreInventory = async (data: StoreInventoryPayload) => {
+  const res = await APIAxios.post(
+    "/inventory/create-store-inventory/",
+    data
+  );
   return res.data;
 };
 
@@ -120,27 +106,38 @@ export default function NewStoreInventorySheet() {
       toast.success("Store Inventory created successfully");
       queryClient.invalidateQueries({ queryKey: ["storeInventory"] });
     },
-    onError(error, variables, context) {
-      const errorMessage = extractErrorMessage(error);
+    onError: (error: any) => {
+      const errorMessage =
+        error?.response?.data?.error?.summary ||
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong";
+
       toast.error(errorMessage);
     },
+
   });
   const { uploadToCloudinary } = useCloudinary();
   const { isUploading } = useLoading();
 
   const onSubmit = async (data: FormType) => {
     let image_one: string | undefined;
+
     const imageFile = data.image_one;
-    if (data.image_one) {
-      const data = await uploadToCloudinary(imageFile);
-      image_one = data.secure_url;
+
+    if (imageFile instanceof File) {
+      const uploaded = await uploadToCloudinary(imageFile);
+      image_one = uploaded.secure_url;
     }
-    const dataToSubmit = {
+
+    const dataToSubmit: StoreInventoryPayload = {
       ...data,
-      image_one: imageFile ? image_one : undefined,
+      image_one,
     };
-    createStoreInvetory(dataToSubmit, {});
+
+    createStoreInvetory(dataToSubmit);
   };
+
   console.log(errors);
 
   return (

@@ -43,7 +43,7 @@ import FinancialSummaryCards from "../misc/components/financial-report/Financial
 import { useGetFinancialReportStats } from "@/mutations/order.mutation";
 import { useGetInventoryChartStats } from "@/mutations/inventory.mutation";
 import { RangeAndCustomDatePicker, SelectBranchCombo } from "@/components/ui";
-import { useGetAllBranches } from "@/mutations/business.mutation";
+import { useGetAllBusiness } from "@/mutations/business.mutation";
 import Link from "next/link";
 import InventoryChart from "../misc/components/charts/InventoryChart";
 import ClientBehaviorChart from "../misc/components/charts/ClientBehaviorChart";
@@ -75,7 +75,7 @@ const OverviewPage: React.FC = () => {
     },
   });
 
-  const { data: branches, isLoading: isFetchingBranch } = useGetAllBranches();
+  const { data: branches, isLoading: isFetchingBranch } = useGetAllBusiness();
 
   const {
     data: financial_stats,
