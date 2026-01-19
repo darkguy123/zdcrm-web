@@ -61,7 +61,7 @@ const StockRow: React.FC<StockRowProps> = ({ item, refetch }) => {
             </>
           )}
           <TableCell>
-            {(variation.size ? variation.size + "inches" : variation.size) ||
+            {(variation.size ? variation.size + " Inches" : variation.size) ||
               variation.color ||
               variation.flavour}
           </TableCell>

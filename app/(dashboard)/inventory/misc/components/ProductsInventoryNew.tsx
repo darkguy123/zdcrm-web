@@ -1,19 +1,19 @@
+"use client";
+
 import React from "react";
 import * as z from "zod";
 import toast from "react-hot-toast";
 import { Add, Book } from "iconsax-react";
-import { Plus, User, X } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
-import { useGetAllBranches } from "@/app/(dashboard)/admin/businesses/misc/api/getAllBranches";
-
 import { zodResolver } from "@hookform/resolvers/zod";
+
 import {
   AmountInput,
   Button,
   SelectSingleCombo,
   Textarea,
 } from "@/components/ui";
-import { Separator } from "@radix-ui/react-select";
 import {
   Input,
   Sheet,
@@ -22,6 +22,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui";
+import { Separator } from "@radix-ui/react-select";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { APIAxios } from "@/utils/axios";
 import ErrorModal from "@/components/ui/modal-error";
@@ -34,118 +36,81 @@ import CustomImagePicker from "./CustomImagePicker";
 import { useGetProductCategories } from "../api";
 import { STORAGE_LOCATION_OPTIONS } from "@/constants";
 
-const variationSchema = z.object({
-  size: z.string().min(1, { message: "Size is required" }),
-  max_quantity_required: z
-    .number()
-    .int()
-    .nonnegative({ message: "Max quantity must be 0 or more" }),
-  minimum_quantity_required: z
-    .number()
-    .int()
-    .nonnegative({ message: "Min quantity must be 0 or more" }),
-  location: z.string().min(1, { message: "Location is required" }).max(255),
-  quantity: z
-    .number()
-    .int()
-    .positive({ message: "Quantity must be a positive integer" }),
-});
+/* =======================
+   ZOD SCHEMA
+======================= */
 
-const MAX_FILE_SIZE = 1000000;
+const variationSchema = z
+  .object({
+    size: z.string().min(1, "Size is required"),
+    location: z.string().min(1, "Storage location is required"),
+
+    minimum_quantity_required: z.coerce
+      .number()
+      .int()
+      .min(1, "Minimum Quantity must be greater than 0")
+      .optional(),
+
+    max_quantity_required: z.coerce
+      .number()
+      .int()
+      .min(1, "Maximum Quantity must be greater than 0")
+      .optional(),
+
+    quantity: z.coerce.number().optional(),
+  })
+  .refine(
+    (v) =>
+      v.minimum_quantity_required !== undefined &&
+      v.max_quantity_required !== undefined,
+    {
+      message: "Minimum and Maximum Quantity are required",
+      path: ["minimum_quantity_required"],
+    }
+  );
+
+
+const MAX_FILE_SIZE = 1_000_000;
 
 const schema = z.object({
-  name: z
-    .string()
-    .min(1, { message: "Item name is required" })
-    .max(255, { message: "Item name must be at most 255 characters long" }),
-  // branch: z.number({ required_error: "Branch is required" }),
-  description: z
-    .string()
-    .min(10, {
-      message: "Item description must be at least 10 characters long",
-    })
-    .max(500, {
-      message: "Item description must be at most 500 characters long",
-    }),
+  name: z.string().min(1, "Item name is required"),
   category: z.number(),
+  description: z.string().optional(),
   image_one: z
-    .any()
-    .nullable()
-    .refine(
-      (file) => {
-        if (!file) {
-          throw z.ZodError.create([
-            {
-              path: ["image_one"],
-              message: "Please select a file.",
-              code: "custom",
-            },
-          ]);
-        }
-        if (!file.type.startsWith("image/")) {
-          throw z.ZodError.create([
-            {
-              path: ["image_one"],
-              message: "Please select an image file.",
-              code: "custom",
-            },
-          ]);
-        }
-        return file.size <= MAX_FILE_SIZE;
-      },
-
-      {
-        message: "Max image size is 10MB.",
-      }
-    ),
-  variations: z
-    .array(variationSchema)
-    .min(1, { message: "At least one variation is required" }),
+    .instanceof(File)
+    .optional()
+    .refine((file) => !file || file.size <= MAX_FILE_SIZE, {
+      message: "Image must be less than 1MB",
+    }),
+  variations: z.array(variationSchema).min(1),
 });
 
 type FormType = z.infer<typeof schema>;
 
-const createProductInventory = async (data: FormType) => {
-  // console.log(data);
-  const res = await APIAxios.post("/inventory/create-product-inventory/", data);
+type Payload = Omit<FormType, "image_one"> & {
+  image_one?: string;
+};
+
+/* =======================
+   API
+======================= */
+
+const createProductInventory = async (data: Payload) => {
+  const res = await APIAxios.post(
+    "/inventory/create-product-inventory/",
+    data
+  );
   return res.data;
 };
 
+/* =======================
+   COMPONENT
+======================= */
+
 export default function NewProductInventorySheet() {
-  const {
-    register,
-    control,
-    handleSubmit,
-    formState: { errors, isDirty },
-    setValue,
-    watch,
-    reset,
-  } = useForm<FormType>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      image_one: null,
-      category: undefined,
-      // branch: undefined,
-      variations: [
-        {
-          size: "4",
-          quantity: 1,
-          max_quantity_required: 0,
-          minimum_quantity_required: 0,
-          location: "",
-        },
-      ],
-    },
-  });
-
-  const { data: branches, isLoading: branchesLoading } = useGetAllBranches();
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "variations",
-  });
-
-  const { data: categories, isLoading: categoriesLoading } =
-    useGetProductCategories();
+  const queryClient = useQueryClient();
+  const { uploadToCloudinary } = useCloudinary();
+  const { isUploading } = useLoading();
   const {
     isErrorModalOpen,
     errorModalMessage,
@@ -154,42 +119,88 @@ export default function NewProductInventorySheet() {
     setErrorModalState,
   } = useErrorModalState();
 
-  const queryClient = useQueryClient();
-  const { uploadToCloudinary } = useCloudinary();
-  const { isUploading } = useLoading();
-  const { mutate: createProductInvetory, isPending: isCreating } = useMutation({
+  const { data: categories, isLoading: categoriesLoading } =
+    useGetProductCategories();
+
+  const {
+    control,
+    register,
+    handleSubmit,
+    formState: { errors, isDirty },
+    reset,
+  } = useForm<FormType>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      name: "",
+      category: undefined,
+      description: "",
+      image_one: undefined,
+      variations: [
+        {
+          size: "",
+          location: "",
+          minimum_quantity_required: undefined,
+          max_quantity_required: undefined,
+          quantity: undefined,
+        },
+      ],
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "variations",
+  });
+
+  const { mutate, isPending: isCreating } = useMutation({
     mutationFn: createProductInventory,
     onSuccess: () => {
-      reset({
-        image_one: null,
-        category: 8,
-        variations: [{ size: "4", quantity: 1 }],
-      });
-      setValue("image_one", null);
-      toast.success("Product Inventory created successfully");
+      toast.success("Product inventory created successfully");
       queryClient.invalidateQueries({ queryKey: ["productsInventory"] });
+      reset();
     },
-    onError: (error: unknown) => {
+    onError: (error: any) => {
       const errorMessage =
-        extractErrorMessage(error) || formatAxiosErrorMessage(error as any);
+        error?.response?.data?.error?.summary ||
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong";
       openErrorModalWithMessage(errorMessage);
     },
   });
 
+  /* =======================
+     SUBMIT
+  ======================= */
+
   const onSubmit = async (data: FormType) => {
     let image_one: string | undefined;
-    const imageFile = data.image_one;
-    if (data.image_one) {
-      const data = await uploadToCloudinary(imageFile);
-      image_one = data.secure_url;
+
+    if (data.image_one instanceof File) {
+      const uploaded = await uploadToCloudinary(data.image_one);
+      image_one = uploaded.secure_url;
     }
-    const dataToSubmit = {
-      ...data,
-      image_one: imageFile ? image_one : undefined,
+
+    const payload: Payload = {
+      name: data.name,
+      category: data.category,
+      description: data.description,
+      image_one,
+      variations: data.variations.map((v) => ({
+        size: v.size,
+        location: v.location,
+        minimum_quantity_required: v.minimum_quantity_required,
+        max_quantity_required: v.max_quantity_required,
+        quantity: v.quantity,
+      })),
     };
-    createProductInvetory(dataToSubmit);
+
+    mutate(payload);
   };
-  console.log(errors);
+
+  /* =======================
+     UI
+  ======================= */
 
   return (
     <>
@@ -330,9 +341,12 @@ export default function NewProductInventorySheet() {
                   render={({ field }) => (
                     <AmountInput
                       {...field}
-                      {...register(`variations.${index}.quantity`, {
-                        valueAsNumber: true,
-                      })}
+                      {...register(
+                        `variations.${index}.quantity`,
+                        {
+                          valueAsNumber: true,
+                        }
+                      )}
                       type="number"
                       label="Quantity"
                       placeholder="Quantity"
@@ -352,9 +366,12 @@ export default function NewProductInventorySheet() {
                   render={({ field }) => (
                     <AmountInput
                       {...field}
-                      {...register(`variations.${index}.max_quantity_required`, {
-                        valueAsNumber: true,
-                      })}
+                      {...register(
+                        `variations.${index}.max_quantity_required`,
+                        {
+                          valueAsNumber: true,
+                        }
+                      )}
                       type="number"
                       label="Max Quantity Required"
                       placeholder="Max Quantity"
@@ -373,9 +390,12 @@ export default function NewProductInventorySheet() {
                   render={({ field }) => (
                     <AmountInput
                       {...field}
-                      {...register(`variations.${index}.minimum_quantity_required`, {
-                        valueAsNumber: true,
-                      })}
+                      {...register(
+                        `variations.${index}.minimum_quantity_required`,
+                        {
+                          valueAsNumber: true,
+                        }
+                      )}
                       type="number"
                       label="Min Quantity Required"
                       placeholder="Min Quantity"
@@ -426,11 +446,11 @@ export default function NewProductInventorySheet() {
               type="button"
               onClick={() =>
                 append({
-                  quantity: 1,
-                  size: "",
-                  max_quantity_required: 0,
-                  minimum_quantity_required: 0,
                   location: "",
+                  minimum_quantity_required: undefined,
+                  max_quantity_required: undefined,
+                  size: "",
+                  quantity: undefined,
                 })
               }
               variant="outline"

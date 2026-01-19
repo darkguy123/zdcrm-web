@@ -35,105 +35,6 @@ import ErrorModal from "@/components/ui/modal-error";
 import CustomImagePicker from "./CustomImagePicker";
 import { useGetStockCategories } from "../api";
 import { useGetAllBranches } from "@/app/(dashboard)/admin/businesses/misc/api/getAllBranches";
-import { error } from "console";
-
-type ApiVariation = {
-  location: string;
-  minimum_quantity_required: number;
-  max_quantity_required: number;
-  size?: string;
-  color?: string;
-  flavour?: string;
-  quantity?: number;
-};
-
-
-// const variationSchema = z.object({
-//   size: z.string().optional(),
-//   color: z.string().optional(),
-//   flavour: z.string().optional(),
-//   quantity: z
-//     .number()
-//     .int()
-//     .positive({ message: "Quantity must be a positive integer" }),
-//   max_quantity_required: z
-//     .number()
-//     .int()
-//     .nonnegative({ message: "Max quantity must be 0 or more" })
-//     .optional(),
-//   minimum_quantity_required: z
-//     .number()
-//     .int()
-//     .nonnegative({ message: "Min quantity must be 0 or more" })
-//     .optional(),
-//   location: z.string().min(1, { message: "Location is required" }).max(255),
-// });
-
-// const MAX_FILE_SIZE = 1000000;
-
-// const schema = z
-//   .object({
-//     name: z.string().min(1, { message: "Item name is required" }).max(255),
-//     description: z
-//       .string()
-//       .min(10, { message: "Item description is required" })
-//       .max(300),
-//     category: z.number(),
-//     // branch: z.number({ required_error: "Branch is required" }),
-//     image_one: z
-//       .any()
-//       .nullable()
-//       .refine(
-//         (file) => {
-//           if (!file) {
-//             throw z.ZodError.create([
-//               {
-//                 path: ["image_one"],
-//                 message: "Please select a file.",
-//                 code: "custom",
-//               },
-//             ]);
-//           }
-//           if (!file.type.startsWith("image/")) {
-//             throw z.ZodError.create([
-//               {
-//                 path: ["image_one"],
-//                 message: "Please select an image file.",
-//                 code: "custom",
-//               },
-//             ]);
-//           }
-//           return file.size <= MAX_FILE_SIZE;
-//         },
-
-//         {
-//           message: "Max image size is 10MB.",
-//         }
-//       ),
-//     variations: z
-//       .array(variationSchema)
-//       .min(1, { message: "At least one variation is required" }),
-//   })
-//   .refine(
-//     (data) => {
-//       const category = data.category;
-//       return data.variations.every((variation) => {
-//         if (category === 8) {
-//           return !!variation.size;
-//         } else if (category === 9) {
-//           return !!variation.color;
-//         } else if (category === 10) {
-//           return !!variation.flavour;
-//         }
-//         return true;
-//       });
-//     },
-//     {
-//       path: ["variations"],
-//       message:
-//         "Variations must include the correct fields based on the selected category",
-//     }
-//   );
 
 const MAX_FILE_SIZE = 1000000;
 
@@ -141,44 +42,68 @@ const variationSchema = z.object({
   location: z.string().min(1, "Storage Location is required"),
 
   minimum_quantity_required: z.coerce
-    .number({ invalid_type_error: "Minimum Quantity is required" })
+    .number({ required_error: "Minimum Quantity is required" })
     .int()
-    .nonnegative(),
+    .min(1, "Minimum Quantity must be greater than 0"),
 
   max_quantity_required: z.coerce
-    .number({ invalid_type_error: "Maximum Quantity is required" })
+    .number({ required_error: "Maximum Quantity is required" })
     .int()
-    .nonnegative(),
+    .min(1, "Maximum Quantity must be greater than 0"),
 
-  size: z.string().min(1, "Size is required"),
-
-  quantity: z.coerce.number().optional(),
+  size: z.string().optional(),
   color: z.string().optional(),
   flavour: z.string().optional(),
+
+  quantity: z.coerce.number().optional(),
 });
 
+const schema = z
+  .object({
+    name: z.string().min(1, "Item name is required"),
 
+    category: z.coerce
+      .number({ invalid_type_error: "Category is required" })
+      .int()
+      .min(1, "Category is required"),
 
-const schema = z.object({
-  name: z.string().min(1, "Item name is required"),
+    description: z.string().optional(),
 
-  category: z.coerce
-    .number({ invalid_type_error: "Category is required" })
-    .int()
-    .refine((v) => v > 0, "Category is required"),
+    image_one: z
+      .instanceof(File)
+      .nullable()
+      .optional(),
 
-  description: z.string().optional(),
+    variations: z.array(variationSchema).min(1),
+  })
+  .superRefine((data, ctx) => {
+    data.variations.forEach((v, index) => {
+      if (data.category === 8 && !v.size) {
+        ctx.addIssue({
+          path: ["variations", index, "size"],
+          message: "Size is required",
+          code: z.ZodIssueCode.custom,
+        });
+      }
 
-  image_one: z
-    .instanceof(File)
-    .nullable()
-    .optional()
-    .refine((file) => !file || file.size <= MAX_FILE_SIZE, {
-      message: "Image must be less than 1MB",
-    }),
+      if (data.category === 9 && !v.color) {
+        ctx.addIssue({
+          path: ["variations", index, "color"],
+          message: "Color is required",
+          code: z.ZodIssueCode.custom,
+        });
+      }
 
-  variations: z.array(variationSchema).min(1),
-});
+      if (data.category === 10 && !v.flavour) {
+        ctx.addIssue({
+          path: ["variations", index, "flavour"],
+          message: "Flavour is required",
+          code: z.ZodIssueCode.custom,
+        });
+      }
+    });
+  });
+
 
 
 
@@ -192,13 +117,14 @@ type FormType = z.infer<typeof schema>;
 const createStockInventory = async (
   data: StockInventoryPayload
 ) => {
-  console.log(data);
   const res = await APIAxios.post("/inventory/create-stock-inventory/", data);
   return res.data;
 };
 
 export default function NewInventorySheet() {
   const { data: branches, isLoading: branchesLoading } = useGetAllBranches();
+  const [open, setOpen] = React.useState(false);
+
   const {
     register,
     control,
@@ -211,7 +137,7 @@ export default function NewInventorySheet() {
     resolver: zodResolver(schema),
     defaultValues: {
       name: "",
-      category: 0,
+      category: undefined,
       description: "",
       image_one: null,
       variations: [
@@ -249,19 +175,27 @@ export default function NewInventorySheet() {
   const { mutate: createStockInvetory, isPending: isCreating } = useMutation({
     mutationFn: createStockInventory,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["stockInventory"] });
+      queryClient.invalidateQueries({ queryKey: ["stock-inventory-list"] });
       toast.success("Stock inventory created successfully");
       reset();
       setValue("image_one", null);
+      setOpen(false);
     },
-    onError: (error: unknown) => {
+    onError: (error: any) => {
       const errorMessage =
-        extractErrorMessage(error) || formatAxiosErrorMessage(error as any);
+        error?.response?.data?.error?.summary ||
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong";
       openErrorModalWithMessage(errorMessage);
+      reset();
+      setValue("image_one", null);
     },
+
   });
 
   const onSubmit = async (data: FormType) => {
+    console.log(data);
     let image_one: string | undefined;
 
     if (data.image_one instanceof File) {
@@ -273,17 +207,43 @@ export default function NewInventorySheet() {
       name: data.name,
       category: data.category,
       description: data.description,
-      variations: data.variations.map((v) => ({
-        location: v.location,
-        minimum_quantity_required: v.minimum_quantity_required,
-        max_quantity_required: v.max_quantity_required,
-        size: v.size,
-        quantity: v.quantity,
-      })),
+      variations: data.variations.map((v) => {
+        const base = {
+          location: v.location,
+          minimum_quantity_required: v.minimum_quantity_required,
+          max_quantity_required: v.max_quantity_required,
+          quantity: v.quantity,
+        };
+
+        if (data.category === 8) {
+          return {
+            ...base,
+            size: v.size,
+          };
+        }
+
+        if (data.category === 9) {
+          return {
+            ...base,
+            color: v.color,
+          };
+        }
+
+        if (data.category === 10) {
+          return {
+            ...base,
+            flavour: v.flavour,
+          };
+        }
+
+        return base;
+      }),
       ...(image_one ? { image_one } : {}),
     };
 
+
     createStockInvetory(payload);
+
   };
 
   const selectedCategoryName = categories?.find(
@@ -298,9 +258,12 @@ export default function NewInventorySheet() {
     }
   }, [errorMessage]);
 
+  // const watchCat = watch("category")
+  // console.log(watchCat)
+
   return (
     <>
-      <Sheet>
+      <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <Button variant="default" className="bg-black text-white">
             <Plus className="mr-2 h-4 w-4" /> Add New Stock Item
@@ -435,17 +398,17 @@ export default function NewInventorySheet() {
                 )}
                 {watch("category") == 9 && (
                   <Controller
-                    name={`variations.${index}.size`}
+                    name={`variations.${index}.color`}
                     control={control}
                     render={({ field }) => (
                       <Input
                         {...field}
-                        label="Size"
+                        label="Color"
                         value={field.value}
-                        placeholder="Item size"
-                        hasError={!!errors.variations?.[index]?.size}
+                        placeholder="Item color"
+                        hasError={!!errors.variations?.[index]?.color}
                         errorMessage={
-                          errors.variations?.[index]?.size?.message as string
+                          errors.variations?.[index]?.color?.message as string
                         }
                       />
                     )}
@@ -584,6 +547,8 @@ export default function NewInventorySheet() {
                   minimum_quantity_required: 0,
                   max_quantity_required: 0,
                   size: "",
+                  color: "",
+                  flavour: "",
                   quantity: undefined,
                 })
               }
