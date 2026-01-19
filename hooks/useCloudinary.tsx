@@ -11,7 +11,7 @@ const useCloudinary = () => {
   const uploadToCloudinary = async (file: File): Promise<{ id: string; secure_url: string }> => {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', 'zuzu_delight');
+    formData.append('upload_preset', 'zdcrmhub');
 
     setIsUploading(true);
     try {
@@ -57,7 +57,7 @@ const useCloudinary = () => {
         }
       );
 
-      return response.data; 
+      return response.data;
     } catch (error) {
       throw new Error('Failed to delete file from Cloudinary');
     } finally {

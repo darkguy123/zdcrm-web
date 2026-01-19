@@ -42,55 +42,68 @@ const variationSchema = z.object({
   location: z.string().min(1, "Storage Location is required"),
 
   minimum_quantity_required: z.coerce
-    .number()
+    .number({ required_error: "Minimum Quantity is required" })
     .int()
-    .min(1, "Minimum Quantity must be greater than 0")
-    .optional(),
+    .min(1, "Minimum Quantity must be greater than 0"),
 
   max_quantity_required: z.coerce
-    .number()
+    .number({ required_error: "Maximum Quantity is required" })
     .int()
-    .min(1, "Maximum Quantity must be greater than 0")
-    .optional(),
+    .min(1, "Maximum Quantity must be greater than 0"),
 
-  size: z.string().min(1, "Size is required"),
-
-  quantity: z.coerce.number().optional(),
+  size: z.string().optional(),
   color: z.string().optional(),
   flavour: z.string().optional(),
-})
-  .refine(
-    (v) =>
-      v.minimum_quantity_required !== undefined &&
-      v.max_quantity_required !== undefined,
-    {
-      message: "Minimum and Maximum Quantity are required",
-      path: ["minimum_quantity_required"],
-    }
-  );
 
-
-
-const schema = z.object({
-  name: z.string().min(1, "Item name is required"),
-
-  category: z.coerce
-    .number({ invalid_type_error: "Category is required" })
-    .int()
-    .refine((v) => v > 0, "Category is required"),
-
-  description: z.string().optional(),
-
-  image_one: z
-    .instanceof(File)
-    .nullable()
-    .optional()
-    .refine((file) => !file || file.size <= MAX_FILE_SIZE, {
-      message: "Image must be less than 1MB",
-    }),
-
-  variations: z.array(variationSchema).min(1),
+  quantity: z.coerce.number().optional(),
 });
+
+const schema = z
+  .object({
+    name: z.string().min(1, "Item name is required"),
+
+    category: z.coerce
+      .number({ invalid_type_error: "Category is required" })
+      .int()
+      .min(1, "Category is required"),
+
+    description: z.string().optional(),
+
+    image_one: z
+      .instanceof(File)
+      .nullable()
+      .optional(),
+
+    variations: z.array(variationSchema).min(1),
+  })
+  .superRefine((data, ctx) => {
+    data.variations.forEach((v, index) => {
+      if (data.category === 8 && !v.size) {
+        ctx.addIssue({
+          path: ["variations", index, "size"],
+          message: "Size is required",
+          code: z.ZodIssueCode.custom,
+        });
+      }
+
+      if (data.category === 9 && !v.color) {
+        ctx.addIssue({
+          path: ["variations", index, "color"],
+          message: "Color is required",
+          code: z.ZodIssueCode.custom,
+        });
+      }
+
+      if (data.category === 10 && !v.flavour) {
+        ctx.addIssue({
+          path: ["variations", index, "flavour"],
+          message: "Flavour is required",
+          code: z.ZodIssueCode.custom,
+        });
+      }
+    });
+  });
+
 
 
 
@@ -104,13 +117,14 @@ type FormType = z.infer<typeof schema>;
 const createStockInventory = async (
   data: StockInventoryPayload
 ) => {
-  console.log(data);
   const res = await APIAxios.post("/inventory/create-stock-inventory/", data);
   return res.data;
 };
 
 export default function NewInventorySheet() {
   const { data: branches, isLoading: branchesLoading } = useGetAllBranches();
+  const [open, setOpen] = React.useState(false);
+
   const {
     register,
     control,
@@ -123,7 +137,7 @@ export default function NewInventorySheet() {
     resolver: zodResolver(schema),
     defaultValues: {
       name: "",
-      category: 0,
+      category: undefined,
       description: "",
       image_one: null,
       variations: [
@@ -161,10 +175,11 @@ export default function NewInventorySheet() {
   const { mutate: createStockInvetory, isPending: isCreating } = useMutation({
     mutationFn: createStockInventory,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["stockInventory"] });
+      queryClient.invalidateQueries({ queryKey: ["stock-inventory-list"] });
       toast.success("Stock inventory created successfully");
       reset();
       setValue("image_one", null);
+      setOpen(false);
     },
     onError: (error: any) => {
       const errorMessage =
@@ -173,11 +188,14 @@ export default function NewInventorySheet() {
         error?.message ||
         "Something went wrong";
       openErrorModalWithMessage(errorMessage);
+      reset();
+      setValue("image_one", null);
     },
 
   });
 
   const onSubmit = async (data: FormType) => {
+    console.log(data);
     let image_one: string | undefined;
 
     if (data.image_one instanceof File) {
@@ -189,17 +207,43 @@ export default function NewInventorySheet() {
       name: data.name,
       category: data.category,
       description: data.description,
-      variations: data.variations.map((v) => ({
-        location: v.location,
-        minimum_quantity_required: v.minimum_quantity_required,
-        max_quantity_required: v.max_quantity_required,
-        size: v.size,
-        quantity: v.quantity,
-      })),
+      variations: data.variations.map((v) => {
+        const base = {
+          location: v.location,
+          minimum_quantity_required: v.minimum_quantity_required,
+          max_quantity_required: v.max_quantity_required,
+          quantity: v.quantity,
+        };
+
+        if (data.category === 8) {
+          return {
+            ...base,
+            size: v.size,
+          };
+        }
+
+        if (data.category === 9) {
+          return {
+            ...base,
+            color: v.color,
+          };
+        }
+
+        if (data.category === 10) {
+          return {
+            ...base,
+            flavour: v.flavour,
+          };
+        }
+
+        return base;
+      }),
       ...(image_one ? { image_one } : {}),
     };
 
+
     createStockInvetory(payload);
+
   };
 
   const selectedCategoryName = categories?.find(
@@ -214,9 +258,12 @@ export default function NewInventorySheet() {
     }
   }, [errorMessage]);
 
+  // const watchCat = watch("category")
+  // console.log(watchCat)
+
   return (
     <>
-      <Sheet>
+      <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <Button variant="default" className="bg-black text-white">
             <Plus className="mr-2 h-4 w-4" /> Add New Stock Item
@@ -351,17 +398,17 @@ export default function NewInventorySheet() {
                 )}
                 {watch("category") == 9 && (
                   <Controller
-                    name={`variations.${index}.size`}
+                    name={`variations.${index}.color`}
                     control={control}
                     render={({ field }) => (
                       <Input
                         {...field}
-                        label="Size"
+                        label="Color"
                         value={field.value}
-                        placeholder="Item size"
-                        hasError={!!errors.variations?.[index]?.size}
+                        placeholder="Item color"
+                        hasError={!!errors.variations?.[index]?.color}
                         errorMessage={
-                          errors.variations?.[index]?.size?.message as string
+                          errors.variations?.[index]?.color?.message as string
                         }
                       />
                     )}
@@ -500,6 +547,8 @@ export default function NewInventorySheet() {
                   minimum_quantity_required: 0,
                   max_quantity_required: 0,
                   size: "",
+                  color: "",
+                  flavour: "",
                   quantity: undefined,
                 })
               }
