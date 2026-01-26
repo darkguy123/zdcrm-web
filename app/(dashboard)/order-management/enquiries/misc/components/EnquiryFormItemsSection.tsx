@@ -5,8 +5,6 @@ import { TrashIcon, XIcon } from 'lucide-react';
 import { useGetCategories, useGetProducts, useGetProductsInventory, useGetStockInventory } from '@/app/(dashboard)/inventory/misc/api';
 import { Checkbox, FormControl, FormField, FormItem, Input, SelectSingleCombo, Button } from '@/components/ui';
 
-
-
 import { PRODUCT_TYPES_OPTIONS } from '@/constants';
 import { Label } from '@/components/ui/label';
 import { TProductInventoryItem } from '@/app/(dashboard)/inventory/misc/types/products';
@@ -60,7 +58,6 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
 
 }) => {
     const { data: categories, isLoading: categoriesLoading } = useGetCategories();
-    // const { data: categories, isLoading: categoriesLoading } = useGetAllBusiness()
     const { data: propertyOptions, isLoading: isLoadingPropertyOptions } = useGetPropertyOptions()
     const { data: products, isLoading: productsLoading, isFetching: productsFetching } = useGetProducts({
         category: watch(`items.${index}.category`)
@@ -75,8 +72,10 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
         control,
         name: `items.${index}.inventories`
     });
-    const selectedBranch = watch('branch');
+
+    const selectedBranch = watch('branch'); // NOTE: this is your "business_id" value in practice
     const selectedCategory = watch(`items.${index}.category`);
+
     const categoryName = categories?.find(cat => cat.id === Number(selectedCategory))?.name || '';
     const matchedCategory = categories?.find(cat => cat.id === Number(selectedCategory));
     const isStockInventory = matchedCategory?.name === 'Cake' || matchedCategory?.name === 'Flower' || matchedCategory?.name === 'Cupcake';
@@ -103,6 +102,25 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
         category: Number(watchedItems?.[index]?.category),
     });
 
+    // ✅ FIX: a single reset function (used on init + category change)
+    const resetInventoriesAndProperties = React.useCallback(() => {
+        setValue(`items.${index}.inventories`, [
+            {
+                message: "",
+                instruction: "",
+                quantity_used: 0,
+                variations: [],
+            },
+        ], { shouldDirty: true, shouldTouch: true });
+
+        setValue(`items.${index}.properties`, {
+            layers: "",
+            toppings: "",
+            bouquet: "",
+            glass_vase: "",
+            whipped_cream_upgrade: "",
+        }, { shouldDirty: true, shouldTouch: true });
+    }, [index, setValue]);
 
 
     const calcucateItemAmount = React.useCallback((items: TOrderFormItem) => {
@@ -134,6 +152,8 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
 
 
     const [isInitialLoad, setIsInitialLoad] = useState(true)
+
+    // ✅ FIX: initialize defaults once (same as your logic, but uses the reset helper)
     React.useEffect(() => {
         const currentInventories = watch(`items.${index}.inventories`)
 
@@ -142,28 +162,35 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
             currentInventories.length === 0 ||
             (currentInventories.length === 1 && currentInventories?.[0]?.variations?.length === 0 && isInitialLoad)
         ) {
-            setValue(`items.${index}.inventories`, [
-                {
-                    message: "",
-                    instruction: "",
-                    quantity_used: 0,
-                    variations: [],
-                },
-            ])
-
-            setValue(`items.${index}.properties`, {
-                layers: "",
-                toppings: "",
-                bouquet: "",
-                glass_vase: "",
-                whipped_cream_upgrade: "",
-            })
+            resetInventoriesAndProperties();
         }
 
         setIsInitialLoad(false)
-    }, [selectedCategory, index, setValue, watch, isInitialLoad])
+    }, [index, watch, isInitialLoad, resetInventoriesAndProperties])
 
+    // ✅ FIX: HARD RESET WHEN CATEGORY CHANGES (this is what prevents “previous stock won’t delete”)
+    const prevCategoryRef = React.useRef<number | undefined>(undefined);
+    React.useEffect(() => {
+        const current = selectedCategory ? Number(selectedCategory) : undefined;
 
+        // skip first mount (init is handled above)
+        if (prevCategoryRef.current === undefined) {
+            prevCategoryRef.current = current;
+            return;
+        }
+
+        // only act when category truly changes
+        if (prevCategoryRef.current !== current) {
+            // clear inventories (removes previous selected stock/product inventory)
+            resetInventoriesAndProperties();
+
+            // also clear product selection because product is category-dependent
+            setValue(`items.${index}.product_id`, undefined as any, { shouldDirty: true, shouldTouch: true });
+            setValue(`items.${index}.product_variation_id`, "" as any, { shouldDirty: true, shouldTouch: true });
+
+            prevCategoryRef.current = current;
+        }
+    }, [selectedCategory, index, resetInventoriesAndProperties, setValue]);
 
 
 
@@ -221,9 +248,9 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
                                             isLoadingOptions={categoriesLoading}
                                             hasError={!!errors.items?.[index]?.category}
                                             errorMessage={errors.items?.[index]?.category?.message}
-                                            placeholder={!watch('branch') ? 'Select branch first' : 'Select category'}
+                                            // ✅ text change only (branch is actually business)
+                                            placeholder={!watch('branch') ? 'Select business first' : 'Select category'}
                                             disabled={!watch('branch')}
-
                                         />
                                     )}
                                 />
@@ -236,12 +263,14 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
                                     render={({ field }) => (
                                         <ProductSelector
                                             {...field}
+                                            // ✅ FIX: remount when category changes so UI resets properly
+                                            key={`product-${index}-${selectedCategory || 'none'}`}
                                             category={categoryName}
                                             branch={watch('branch')}
                                             productId={field.value?.toString() || ''}
                                             variationId={watch(`items.${index}.product_variation_id`) || ''}
-                                            setProductId={(value) => { setValue(`items.${index}.product_id`, Number(value)); }}
-                                            setVariationId={(value) => setValue(`items.${index}.product_variation_id`, value)}
+                                            setProductId={(value) => { setValue(`items.${index}.product_id`, Number(value), { shouldDirty: true, shouldTouch: true }); }}
+                                            setVariationId={(value) => setValue(`items.${index}.product_variation_id`, value, { shouldDirty: true, shouldTouch: true })}
                                             options={products || []}
                                             label="Product"
                                             disabled={!selectedCategory || (!productsLoading && !products?.length)}
@@ -268,8 +297,17 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
                             {
                                 isStockInventory ?
                                     <OrderFormStockInventorySelector
+                                        // ✅ FIX: remount on category change so the select UI fully clears
+                                        key={`stock-${index}-${selectedCategory || 'none'}`}
                                         inventories={watch(`items.${index}.inventories`)}
-                                        setInventories={(inventories) => setValue(`items.${index}.inventories`, inventories as enquiryItemType['inventories'])}
+                                        // ✅ FIX: ensure delete truly updates RHF state
+                                        setInventories={(inventories) =>
+                                            setValue(
+                                                `items.${index}.inventories`,
+                                                inventories as enquiryItemType['inventories'],
+                                                { shouldDirty: true, shouldTouch: true }
+                                            )
+                                        }
                                         options={stockInvetories?.data!}
                                         disabled={!watch('branch') || !watch(`items.${index}.category`) || stockInventoriesLoading || (!stockInventoriesLoading && !stockInvetories?.data.length)}
                                         isLoadingOptions={stockInventoriesLoading}
@@ -280,19 +318,27 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
                                     :
                                     isProductInventory ?
                                         <OrderFormProductInventorySelector
+                                            // ✅ FIX: same for product inventory selector
+                                            key={`prodInv-${index}-${selectedCategory || 'none'}`}
                                             inventories={watch(`items.${index}.inventories`)}
-                                            setInventories={(inventories) => setValue(`items.${index}.inventories`, inventories as enquiryItemType['inventories'])}
+                                            setInventories={(inventories) =>
+                                                setValue(
+                                                    `items.${index}.inventories`,
+                                                    inventories as enquiryItemType['inventories'],
+                                                    { shouldDirty: true, shouldTouch: true }
+                                                )
+                                            }
                                             options={productsInvetories?.data!}
                                             disabled={!watch('branch') || !watch(`items.${index}.category`) || productInventoriesLoading || (!productInventoriesLoading && !productsInvetories?.data.length)}
                                             isLoadingOptions={productInventoriesLoading}
                                             isFetchingOptions={productInventoriesFetching}
                                             errorMessage={errors.items?.[index]?.inventories?.message}
                                             hasError={!!errors.items?.[index]?.inventories}
-
                                         />
                                         :
                                         null
                             }
+
                             {
                                 selectedCategory &&
                                 <>
@@ -454,7 +500,7 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
                                         onClick={() => {
                                             const newQuantity = (watch('items')?.[index]?.quantity || 0) - 1;
                                             if (newQuantity >= 1) {
-                                                setValue(`items.${index}.quantity`, newQuantity);
+                                                setValue(`items.${index}.quantity`, newQuantity, { shouldDirty: true, shouldTouch: true });
                                             }
                                         }}
                                         className="flex items-center justify-center border border-[#0F172B] text-lg text-center p-2 leading-3"
@@ -468,7 +514,7 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
                                         type="button"
                                         onClick={() => {
                                             const newQuantity = (watch('items')?.[index]?.quantity || 0) + 1;
-                                            setValue(`items.${index}.quantity`, newQuantity);
+                                            setValue(`items.${index}.quantity`, newQuantity, { shouldDirty: true, shouldTouch: true });
                                         }}
                                         className="flex items-center justify-center border border-[#0F172B] text-lg text-center p-2 leading-3"
                                     >
@@ -504,7 +550,6 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
 
                         }
                         <Button
-                            // variant="outline"
                             onClick={addNewItem}
                             type="button"
                         >
@@ -518,4 +563,3 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
 };
 
 export default EnquiryFormItemsSection;
-

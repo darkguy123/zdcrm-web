@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 
 
 interface CreateRoleData {
-  role_name	: string;
+  name	: string;
 }
 
 const createRoleFn = async (data: CreateRoleData) => {

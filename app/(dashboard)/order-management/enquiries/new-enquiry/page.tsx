@@ -59,11 +59,14 @@ import EnquiryFormItemsSection from "../misc/components/EnquiryFormItemsSection"
 import Link from "next/link";
 import SelectSingleSimple from "@/components/ui/selectSingleSimple";
 import { useGetAllBranches } from "@/app/(dashboard)/admin/businesses/misc/api";
+import { useGetAllBusiness } from "@/mutations/business.mutation";
+
 
 
 const NewEnquiryPage = () => {
 
   const { data: branches, isLoading: branchesLoading } = useGetAllBranches();
+  const { data: businesses, isLoading: businessesLoading } = useGetAllBusiness();
   const { data: categories, isLoading: categoriesLoading } = useGetCategories();
   const { data: products, isLoading: productsLoading } = useGetProducts();
   const { data: dispatchLocations, isLoading: dispatchLocationsLoading } = useGeTOrderDeliveryLocations();
@@ -375,13 +378,22 @@ const NewEnquiryPage = () => {
                       name="branch"
                       control={control}
                       render={({ field }) => (
-                        <SelectBranchCombo
-                          name="branch"
-                          value={field.value?.toString() || ''}
+                        <SelectSingleCombo
+                          name="branch" // ✅ REQUIRED — fixes the type error
+                          label="Business"
+                          value={field.value?.toString() || ""}
                           onChange={(val) => field.onChange(Number(val))}
+                          options={
+                            businesses?.map((b) => ({
+                              label: b.name,
+                              value: b.id.toString(),
+                            })) || []
+                          }
+                          valueKey="value"
+                          labelKey="label"
                           className="!h-10 min-w-40"
-                          placeholder="Select Branch"
-                          isLoadingOptions={branchesLoading}
+                          placeholder="Select Business"
+                          isLoadingOptions={businessesLoading}
                           hasError={!!errors.branch}
                           errorMessage={errors.branch?.message}
                           variant="inputButton"
