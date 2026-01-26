@@ -51,9 +51,12 @@ import { TOrder } from "../../misc/types";
 import { useLoading } from "@/contexts";
 import SelectSingleSimple from "@/components/ui/selectSingleSimple";
 import { useGetAllBranches } from "@/app/(dashboard)/admin/businesses/misc/api";
+import { useGetAllBusiness } from "@/mutations/business.mutation";
 
 const NewOrderPage = () => {
   const { data: branches, isLoading: branchesLoading } = useGetAllBranches();
+  const { data: businesses, isLoading: businessesLoading } = useGetAllBusiness();
+
   const { data: categories, isLoading: categoriesLoading } = useGetCategories();
   const { data: products, isLoading: productsLoading } = useGetProducts();
   const { data: dispatchLocations, isLoading: dispatchLocationsLoading } =
@@ -64,7 +67,7 @@ const NewOrderPage = () => {
     defaultValues: {
       branch: branches?.data?.[0].id,
       customer: {
-        name: "", 
+        name: "",
         phone: "",
         alternative_phone: "",
         email: ""
@@ -408,14 +411,25 @@ const NewOrderPage = () => {
                       name="branch"
                       control={control}
                       render={({ field }) => (
-                        <SelectBranchCombo
+                        <SelectSingleCombo
+                          name="branch" // ✅ REQUIRED — fixes the type error
+                          label="Business"
                           value={field.value?.toString() || ""}
-                          onChange={(v) => field.onChange(Number(v))}
-                          name="branch"
-                          placeholder="Select Branch"
-                          variant="inputButton"
+                          onChange={(val) => field.onChange(Number(val))}
+                          options={
+                            businesses?.map((b) => ({
+                              label: b.name,
+                              value: b.id.toString(),
+                            })) || []
+                          }
+                          valueKey="value"
+                          labelKey="label"
                           className="!h-10 min-w-40"
-                          isLoadingOptions={branchesLoading}
+                          placeholder="Select Business"
+                          isLoadingOptions={businessesLoading}
+                          hasError={!!errors.branch}
+                          errorMessage={errors.branch?.message}
+                          variant="inputButton"
                         />
                       )}
                     />
