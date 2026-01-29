@@ -232,6 +232,8 @@ export const NewEnquirySchema = z.object({
   branch: z.number({ message: "Select a branch" }).optional(),
   message: z.string().optional(),
   items: z.array(enquiryItemSchema).optional(),
+  discount_id: z.number().optional(),
+  custom_discount_amount: z.number().optional(),
 });
 
 export const ConvertiblEnquirySchema = z

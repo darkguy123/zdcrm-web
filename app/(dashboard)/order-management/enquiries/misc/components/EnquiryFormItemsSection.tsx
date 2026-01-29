@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Controller, useFieldArray, UseFormWatch, Control, UseFormSetValue, FieldErrors } from "react-hook-form";
 import { TrashIcon, XIcon } from 'lucide-react';
 
@@ -154,23 +154,37 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
     const [isInitialLoad, setIsInitialLoad] = useState(true)
 
     // ✅ FIX: initialize defaults once (same as your logic, but uses the reset helper)
-    React.useEffect(() => {
-        const currentInventories = watch(`items.${index}.inventories`)
+    useEffect(() => {
+        if (isInitialLoad) {
+            const currentInventories = watch(`items.${index}.inventories`);
 
-        if (
-            !currentInventories ||
-            currentInventories.length === 0 ||
-            (currentInventories.length === 1 && currentInventories?.[0]?.variations?.length === 0 && isInitialLoad)
-        ) {
-            resetInventoriesAndProperties();
+            if (!currentInventories || currentInventories.length === 0) {
+                setValue(`items.${index}.inventories`, [
+                    {
+                        message: "",
+                        instruction: "",
+                        quantity_used: 0,
+                        variations: [],
+                    },
+                ]);
+
+                setValue(`items.${index}.properties`, {
+                    layers: "",
+                    toppings: "",
+                    bouquet: "",
+                    glass_vase: "",
+                    whipped_cream_upgrade: "",
+                });
+            }
+
+            setIsInitialLoad(false);
         }
+    }, [index, isInitialLoad, setValue, watch]);
 
-        setIsInitialLoad(false)
-    }, [index, watch, isInitialLoad, resetInventoriesAndProperties])
 
     // ✅ FIX: HARD RESET WHEN CATEGORY CHANGES (this is what prevents “previous stock won’t delete”)
     const prevCategoryRef = React.useRef<number | undefined>(undefined);
-    React.useEffect(() => {
+    useEffect(() => {
         const current = selectedCategory ? Number(selectedCategory) : undefined;
 
         // skip first mount (init is handled above)

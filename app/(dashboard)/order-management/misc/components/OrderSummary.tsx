@@ -313,7 +313,7 @@ export default function OrderSummary() {
                 </div>
 
 
-                <Form {...form}>
+                {/* <Form {...form}>
                   <form onSubmit={handleSubmit(onSubmit)} className='mt-16' id="discount_form">
                     <section className='flex flex-col'>
                       <header className="flex items-center gap-5 text-[#194A7A] border-b mb-4 p-1.5">
@@ -408,7 +408,26 @@ export default function OrderSummary() {
                       </div>
                     </section>
                   </form>
-                </Form>
+                </Form> */}
+
+                <div className='mt-16 w-[300px] self-end'>
+                  <p className='font-medium mt-2 text-[#8B909A]'>
+                    Subtotal (NGN):
+                    {formatCurrency(Number(order?.total_amount) - Number(order?.delivery.dispatch?.delivery_price || '0'), "NGN")}
+                  </p>
+                  <p className='font-medium mt-2 text-[#8B909A]'>Delivery Fee: {formatCurrency(Number(order?.delivery.dispatch?.delivery_price) || 0, "NGN")}</p>
+                  <p className='font-medium mt-2 text-red-500'>Discount: -{formatCurrency(Number(order?.discount?.amount) || 0, "NGN")}</p>
+                  {/* <p className='font-medium mt-2 text-red-500'>Discount: -{formatCurrency(Number(watch('custom_discount_amount') || selectedDiscountAmount) || 0, "NGN")}</p> */}
+                  <p className='text-xl font-bold mt-6'>
+                    Total (NGN):
+                    {
+                      formatCurrency(
+                        Number(order?.total_amount) -
+                        (watch('custom_discount_amount') || (Number(discounts?.data.find((discount) => discount.id.toString() == watch('discount_id'))?.amount) || 0)),
+                        "NGN")
+                    }
+                  </p>
+                </div>
               </div>
 
 
@@ -488,7 +507,9 @@ export default function OrderSummary() {
               <Button variant={"outline"} className="h-14 ml-auto px-16" onClick={openExportSummaryModal} disabled={isLoading} >
                 Export
               </Button>
-              <Button className='w-max bg-gray-900 hover:bg-gray-800 text-white px-8 '
+              <Button
+                onClick={handleStatusUpdate}
+                className='w-max bg-gray-900 hover:bg-gray-800 text-white px-8 '
                 form="discount_form"
                 variant="inputButton">
                 Send For Processing

@@ -35,7 +35,7 @@ const editEmployeeSchema = z.object({
   email: z.string().email("Invalid email address"),
   phone: z.string().optional(),
   role: z.string().min(1, "Role is required"),
-  branch_ids: z.array(z.string()).min(1, "At least one branch must be selected"),
+  // branch_ids: z.array(z.string()).min(1, "At least one branch must be selected"),
   is_active: z.boolean(),
 });
 
@@ -70,7 +70,7 @@ const EditEmployeeSheet: React.FC<EditEmployeeSheetProps> = ({
       email: "",
       phone: "",
       role: "",
-      branch_ids: [],
+      // branch_ids: [],
       is_active: true,
     },
   });
@@ -97,7 +97,7 @@ const EditEmployeeSheet: React.FC<EditEmployeeSheetProps> = ({
         email: selectedUser.email,
         phone: selectedUser.phone || "",
         role: selectedUser.role_name,
-        branch_ids: selectedUser.branches?.map((id) => id.toString()) || [],
+        // branch_ids: selectedUser.branches?.map((id) => id.toString()) || [],
         is_active: selectedUser.is_active,
       });
     }
@@ -222,7 +222,7 @@ const EditEmployeeSheet: React.FC<EditEmployeeSheetProps> = ({
             />
           </div>
 
-          <div className="flex flex-col gap-3">
+          {/* <div className="flex flex-col gap-3">
             <Label className="text-[#111827]">
               Branch Access <span className="text-red-500">*</span>
             </Label>
@@ -241,7 +241,7 @@ const EditEmployeeSheet: React.FC<EditEmployeeSheetProps> = ({
                 />
               )}
             />
-          </div>
+          </div> */}
 
           <div className="flex flex-col gap-3">
             <Label className="text-[#111827]">

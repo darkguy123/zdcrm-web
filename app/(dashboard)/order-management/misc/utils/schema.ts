@@ -162,6 +162,8 @@ export const NewOrderSchema = z
       fee: z.number().optional(),
       is_custom_delivery: z.boolean().optional(),
     }),
+    discount_id: z.number().optional(),
+    custom_discount_amount: z.number().optional(),
     enquiry_channel: z
       .string()
       .min(1, { message: "Enquiry channel is required" }),
