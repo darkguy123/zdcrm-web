@@ -154,6 +154,8 @@ const NewEnquiryPage = () => {
   const { uploadToCloudinary } = useCloudinary()
   const [createdEnquiry, setCreatedEnquiry] = React.useState<string | number | null>(null);
   const onSubmit = async (data: NewEnquiryFormValues) => {
+
+    console.log("first")
     const processedItems = !!data.items ? await Promise.all(
       data.items.map(async (item) => {
         let custom_image: string | undefined
@@ -201,24 +203,6 @@ const NewEnquiryPage = () => {
 
   const isDispatchOrder = watch('delivery.method') === "Dispatch"
   // console.log(getValues('items'))
-
-  // Handle mutual exclusivity between regular and custom discounts
-  const customDiscountAmount = watch('custom_discount_amount');
-  const discountId = watch('discount_id');
-
-  React.useEffect(() => {
-    if (!!customDiscountAmount) {
-      setValue('discount_id', undefined)
-    }
-  }, [customDiscountAmount, setValue])
-
-  React.useEffect(() => {
-    if (!!discountId) {
-      setValue('custom_discount_amount', "" as any);
-    }
-  }, [discountId, setValue])
-
-
 
   return (
     <div className="px-8 md:pt-12 w-full md:w-[92.5%] max-w-[1792px] mx-auto">

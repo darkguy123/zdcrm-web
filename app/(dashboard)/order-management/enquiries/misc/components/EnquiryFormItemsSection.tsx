@@ -87,13 +87,12 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
     const isCustomOrder = watch(`items.${index}.is_custom_order`)
     const watchedInventories = watch(`items.${index}.inventories`)
 
-    console.log(watchedItemAtIndex)
 
     const { data: productsInvetories, isLoading: productInventoriesLoading, isFetching: productInventoriesFetching, error: productsError, refetch: refetchProductsInventory } = useGetProductsInventory({
         page: 1,
         size: 20000000000000,
         category: Number(watchedItems?.[index]?.category),
-        branch: watch('branch'),
+        business: watch('branch'),
     });
 
     const { data: stockInvetories, isLoading: stockInventoriesLoading, isFetching: stockInventoriesFetching, error: stockError, refetch: refetchStockInventory } = useGetStockInventory({
