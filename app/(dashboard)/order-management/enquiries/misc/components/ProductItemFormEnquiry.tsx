@@ -36,7 +36,7 @@ const ProductItemFormEnquiry = ({
     page: 1,
     size: 20000000000000,
     category: Number(watchedItems?.[index].category),
-    branch: selectedBranch,
+    business: selectedBranch,
   });
 
 
