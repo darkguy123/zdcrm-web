@@ -101,7 +101,7 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
         page: 1,
         size: 20000000000000,
         category: Number(watchedItems[index]?.category),
-        branch: watch('branch'),
+        business: watch('branch'),
     });
 
     const { data: stockInvetories, isLoading: stockLoading, isFetching: stockFetching, error: stockError, refetch: refetchStockInventory } = useGetStockInventory({
