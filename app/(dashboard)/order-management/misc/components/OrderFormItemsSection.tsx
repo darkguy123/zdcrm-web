@@ -49,7 +49,7 @@ const OrderItemsSection: React.FC<OrderItemsSectionProps> = ({
   const { data: categories, isLoading: categoriesLoading } = useGetCategories();
   const { data: products, isLoading: productsLoading, isFetching: productsFetching } = useGetProducts({
     category: watch(`items.${index}.category`),
-    branch: watch(`branch`)
+    business: watch(`branch`)
   });
 
   const { data: propertyOptions, isLoading: isLoadingPropertyOptions } = useGetPropertyOptions()
@@ -80,6 +80,7 @@ const OrderItemsSection: React.FC<OrderItemsSectionProps> = ({
     page: 1,
     size: 20000000000000,
     category: Number(watchedItems[index]?.category),
+    business: watch('branch'),
   });
 
   const { data: stockInvetories, isLoading: stockInventoriesLoading, isFetching: stockInventoriesFetching, error: stockError, refetch: refetchStockInventory } = useGetStockInventory({

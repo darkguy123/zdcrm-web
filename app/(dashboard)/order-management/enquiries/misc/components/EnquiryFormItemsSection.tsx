@@ -60,7 +60,8 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
     const { data: categories, isLoading: categoriesLoading } = useGetCategories();
     const { data: propertyOptions, isLoading: isLoadingPropertyOptions } = useGetPropertyOptions()
     const { data: products, isLoading: productsLoading, isFetching: productsFetching } = useGetProducts({
-        category: watch(`items.${index}.category`)
+        category: watch(`items.${index}.category`),
+        business: watch('branch'),
     });
 
     const { remove: deleteItems } = useFieldArray({
@@ -86,7 +87,6 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
     const watchedItemAtIndex = watch(`items.${index}`)
     const isCustomOrder = watch(`items.${index}.is_custom_order`)
     const watchedInventories = watch(`items.${index}.inventories`)
-
 
     const { data: productsInvetories, isLoading: productInventoriesLoading, isFetching: productInventoriesFetching, error: productsError, refetch: refetchProductsInventory } = useGetProductsInventory({
         page: 1,
