@@ -36,7 +36,7 @@ const fetchProductInventory = async (
   if (options.date_from) params.append("date_from", options.date_from);
   if (options.date_to) params.append("date_to", options.date_to);
 
-  const res = await APIAxios.get("/inventory/products/", { params });
+  const res = await APIAxios.get("/inventory/product-inventories/", { params });
   return res.data;
 };
 
