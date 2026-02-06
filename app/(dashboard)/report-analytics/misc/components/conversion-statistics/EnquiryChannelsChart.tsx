@@ -6,13 +6,14 @@ import { subMonths } from "date-fns";
 import { Controller, useForm } from "react-hook-form";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LinkButton, RangeAndCustomDatePicker, Spinner } from "@/components/ui";
+import { LinkButton, RangeAndCustomDatePicker, SelectSingleCombo, Spinner } from "@/components/ui";
 
 import SelectSingleSimple from "@/components/ui/selectSingleSimple";
 import { SelectBranchCombo } from '@/components/ui';
 import { useGetAllBranches } from "@/app/(dashboard)/admin/businesses/misc/api";
 import { useGetEnquiryChannelStats } from "../../api";
 import { cn } from "@/lib/utils";
+import { useGetAllBusiness } from "@/mutations/business.mutation";
 
 const chartConfig = {
   Google: { label: "Google", color: "#25D366" },
@@ -35,8 +36,8 @@ interface EnquiryChannelsChartProps {
   from_overview?: boolean;
 }
 function EnquiryChannelsChart({ from_overview }: EnquiryChannelsChartProps) {
-  const { data: allBranches, isLoading: isFetchingBranch } =
-    useGetAllBranches();
+  const { data: business, isLoading: isFetchingBranch } =
+    useGetAllBusiness();
   const { control, watch, setValue } = useForm<{
     branch?: string;
     date: DateRange;
@@ -148,13 +149,21 @@ function EnquiryChannelsChart({ from_overview }: EnquiryChannelsChartProps) {
                 name="branch"
                 control={control}
                 render={({ field }) => (
-                  <SelectBranchCombo
-                    value={watch("branch")}
-                    onChange={(new_value) => setValue("branch", new_value)}
-                    placeholder="Filter Branch"
+                  <SelectSingleCombo
                     name="branch"
+                    value={field.value?.toString() || ""}
+                    onChange={(val) => field.onChange(Number(val))}
+                    options={
+                      business?.map((b) => ({
+                        label: b.name,
+                        value: b.id.toString(),
+                      })) || []
+                    }
+                    valueKey="value"
+                    labelKey="label"
                     variant="light"
                     size="thin"
+                    placeholder="Select Business"
                     isLoadingOptions={isFetchingBranch}
                   />
                 )}
@@ -171,11 +180,11 @@ function EnquiryChannelsChart({ from_overview }: EnquiryChannelsChartProps) {
                     setValue(
                       "period",
                       value.dateType as
-                        | "today"
-                        | "week"
-                        | "month"
-                        | "year"
-                        | "custom"
+                      | "today"
+                      | "week"
+                      | "month"
+                      | "year"
+                      | "custom"
                     );
                   }
                 }}
