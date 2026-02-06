@@ -42,7 +42,7 @@ import { monthsAgo, tomorrow } from "@/utils/functions";
 import FinancialSummaryCards from "../misc/components/financial-report/FinancialSummaryCards";
 import { useGetFinancialReportStats } from "@/mutations/order.mutation";
 import { useGetInventoryChartStats } from "@/mutations/inventory.mutation";
-import { RangeAndCustomDatePicker, SelectBranchCombo } from "@/components/ui";
+import { RangeAndCustomDatePicker, SelectBranchCombo, SelectSingleCombo } from "@/components/ui";
 import { useGetAllBusiness } from "@/mutations/business.mutation";
 import Link from "next/link";
 import InventoryChart from "../misc/components/charts/InventoryChart";
@@ -75,7 +75,7 @@ const OverviewPage: React.FC = () => {
     },
   });
 
-  const { data: branches, isLoading: isFetchingBranch } = useGetAllBusiness();
+  const { data: business, isLoading: isFetchingBranch } = useGetAllBusiness();
 
   const {
     data: financial_stats,
@@ -126,13 +126,21 @@ const OverviewPage: React.FC = () => {
             name="branch"
             control={control}
             render={({ field }) => (
-              <SelectBranchCombo
-                noLabel
-                value={watch("branch")}
-                onChange={(new_value) => setValue("branch", new_value)}
-                placeholder="Filter Branch"
+              <SelectSingleCombo
+                name="branch"
+                value={field.value?.toString() || ""}
+                onChange={(val) => field.onChange(Number(val))}
+                options={
+                  business?.map((b) => ({
+                    label: b.name,
+                    value: b.id.toString(),
+                  })) || []
+                }
+                valueKey="value"
+                labelKey="label"
                 variant="light"
-                size="thin"
+                size="thin"                
+                placeholder="Select Business"
                 isLoadingOptions={isFetchingBranch}
               />
             )}

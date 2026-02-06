@@ -16,13 +16,14 @@ import { format, parseISO } from "date-fns";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
-import { Spinner } from "@/components/ui";
+import { SelectSingleCombo, Spinner } from "@/components/ui";
 import SelectSingleSimple from "@/components/ui/selectSingleSimple";
 import { SelectBranchCombo } from "@/components/ui";
 
 import { useGetFinancialOverviewStats } from "../../api";
 import { useGetAllBranches } from "@/app/(dashboard)/admin/businesses/misc/api";
 import BarChartSkeleton from "./BarChartSkeleton";
+import { useGetAllBusiness } from "@/mutations/business.mutation";
 
 const chartConfig = {
   total_revenue: {
@@ -41,11 +42,11 @@ type FormValues = {
 };
 
 export function FinancialOverviewSection({ showDetailed = true }: { showDetailed?: boolean }) {
-  const { data: allBranches, isLoading: isFetchingBranch } = useGetAllBranches();
+  const { data: business, isLoading: isFetchingBranch } = useGetAllBusiness();
 
   const { control, watch, setValue } = useForm<FormValues>({
     defaultValues: {
-      branch: "all",
+      branch: undefined,
       period_type: "weekly",
     },
   });
@@ -132,12 +133,21 @@ export function FinancialOverviewSection({ showDetailed = true }: { showDetailed
               name="branch"
               control={control}
               render={({ field }) => (
-                <SelectBranchCombo
-                  value={branchWatch}
-                  onChange={(new_value) => setValue("branch", new_value)}
-                  placeholder="Filter Branch"
+                <SelectSingleCombo
+                  name="branch"
+                  value={field.value?.toString() || ""}
+                  onChange={(val) => field.onChange(Number(val))}
+                  options={
+                    business?.map((b) => ({
+                      label: b.name,
+                      value: b.id.toString(),
+                    })) || []
+                  }
+                  valueKey="value"
+                  labelKey="label"
                   variant="light"
                   size="thin"
+                  placeholder="Select Business"
                   isLoadingOptions={isFetchingBranch}
                 />
               )}
@@ -146,7 +156,7 @@ export function FinancialOverviewSection({ showDetailed = true }: { showDetailed
         )}
       </CardHeader>
 
-      <div>      
+      <div>
         <ChartContainer config={chartConfig} className="w-full overflow-visible max-w-full max-h-[400px]"
         >
           {isLoading ? (

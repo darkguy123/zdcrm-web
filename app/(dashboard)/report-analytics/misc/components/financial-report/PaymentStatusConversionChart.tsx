@@ -16,6 +16,7 @@ import {
 import {
   RangeAndCustomDatePicker,
   SelectBranchCombo,
+  SelectSingleCombo,
   Spinner,
 } from "@/components/ui";
 import {
@@ -34,6 +35,7 @@ import { useGetPaymentStatusStats } from "@/mutations/order.mutation";
 import { monthsAgo, tomorrow } from "@/utils/functions";
 import { PaymentStatusStats } from "@/types/finacialStatistics.types";
 import { OrderStatsDeliveryZoneChartSkeleton } from "../order-stats/OrderStatsDeliveryZoneSkeleton";
+import { useGetAllBusiness } from "@/mutations/business.mutation";
 
 // ---- Types ------------------------------------------------
 
@@ -87,13 +89,16 @@ export default function PaymentStatusConversionChart({
   barGap = 8,
   barCategoryGap = 32,
 }: PaymentStatusConversionChartProps) {
+  const { data: business, isLoading: isFetchingBranch } =
+    useGetAllBusiness();
+
   const { control, watch, setValue } = useForm<{
     branch?: string;
     date: DateRange;
     period: "today" | "week" | "month" | "year" | "custom";
   }>({
     defaultValues: {
-      branch: "all",
+      branch: undefined,
       date: {
         from: monthsAgo,
         to: tomorrow,
@@ -155,12 +160,23 @@ export default function PaymentStatusConversionChart({
           <Controller
             name="branch"
             control={control}
-            render={() => (
-              <SelectBranchCombo
-                value={watch("branch")}
-                onChange={(new_value) => setValue("branch", new_value)}
+            render={({ field }) => (
+              <SelectSingleCombo
+                name="branch"
+                value={field.value?.toString() || ""}
+                onChange={(val) => field.onChange(Number(val))}
+                options={
+                  business?.map((b) => ({
+                    label: b.name,
+                    value: b.id.toString(),
+                  })) || []
+                }
+                valueKey="value"
+                labelKey="label"
                 variant="light"
                 size="thin"
+                placeholder="Select Business"
+                isLoadingOptions={isFetchingBranch}
               />
             )}
           />
@@ -254,14 +270,14 @@ export default function PaymentStatusConversionChart({
                         return [String(value), String(name)];
                       }}
                     />
-                  }            
+                  }
                   wrapperStyle={{
                     overflow: "visible",
                     zIndex: 9999,
-                    pointerEvents: "auto",                    
+                    pointerEvents: "auto",
                     blur: "10px",
                   } as any}
-                  contentStyle={{ overflow: "visible" } as any}            
+                  contentStyle={{ overflow: "visible" } as any}
                 />
 
                 <Bar

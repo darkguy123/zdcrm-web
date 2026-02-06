@@ -442,29 +442,24 @@ export function RangeAndCustomDatePicker({
                         numberOfMonths={2}
                         selected={date}
                         disablePastDates={disablePastDates}
-                        // initialFocus
+                        captionLayout="dropdown"   // ✅ SHOW MONTH + YEAR
+                        showOutsideDays
                         onSelect={currentSelection => {
-                            // setDate(currentSelection);
-
                             setDate(
                                 currentSelection
                                     ? { ...currentSelection, dateType: 'custom' }
                                     : undefined
                             );
 
-                            // Maintain Hook Form state below alongside local state above.
-                            // This enables the component to be usable without Hook Form
                             if (currentSelection) {
-                                // onChange?.(currentSelection);
-                                onChange?.(
-                                    currentSelection && {
-                                        ...currentSelection,
-                                        dateType: 'custom',
-                                    }
-                                );
+                                onChange?.({
+                                    ...currentSelection,
+                                    dateType: 'custom',
+                                });
                             }
                         }}
                     />
+
                 </div>
 
                 <Button

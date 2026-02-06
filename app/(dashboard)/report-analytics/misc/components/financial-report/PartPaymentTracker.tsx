@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { SelectBranchCombo, Spinner } from "@/components/ui";
+import { SelectBranchCombo, SelectSingleCombo, Spinner } from "@/components/ui";
 import {
   Card,
   CardContent,
@@ -12,6 +12,7 @@ import {
 import { Controller, useForm } from "react-hook-form";
 import { useGetPartPaymentStats } from "@/mutations/order.mutation";
 import { PartPaymentStats } from "@/types/finacialStatistics.types";
+import { useGetAllBusiness } from "@/mutations/business.mutation";
 
 const defaultCurrency = new Intl.NumberFormat("en-NG", {
   style: "currency",
@@ -52,11 +53,14 @@ const Track = ({
 };
 
 export default function PartPaymentTracker() {
+  const { data: business, isLoading: isFetchingBranch } =
+    useGetAllBusiness();
+
   const { control, watch, setValue } = useForm<{
     branch?: string;
   }>({
     defaultValues: {
-      branch: "all",
+      branch: undefined,
     },
   });
 
@@ -86,12 +90,23 @@ export default function PartPaymentTracker() {
         <Controller
           name="branch"
           control={control}
-          render={() => (
-            <SelectBranchCombo
-              value={branch}
-              onChange={(new_value) => setValue("branch", new_value)}
+          render={({ field }) => (
+            <SelectSingleCombo
+              name="branch"
+              value={field.value?.toString() || ""}
+              onChange={(val) => field.onChange(Number(val))}
+              options={
+                business?.map((b) => ({
+                  label: b.name,
+                  value: b.id.toString(),
+                })) || []
+              }
+              valueKey="value"
+              labelKey="label"
               variant="light"
               size="thin"
+              placeholder="Select Business"
+              isLoadingOptions={isFetchingBranch}
             />
           )}
         />

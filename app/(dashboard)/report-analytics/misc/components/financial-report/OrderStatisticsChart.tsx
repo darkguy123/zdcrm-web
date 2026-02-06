@@ -11,7 +11,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { Spinner } from "@/components/ui";
+import { SelectSingleCombo, Spinner } from "@/components/ui";
 import {
   Bar,
   BarChart,
@@ -28,6 +28,7 @@ import { subMonths } from "date-fns";
 import { SelectBranchCombo } from '@/components/ui';
 import { OrderStatsDeliveryZoneChartSkeleton } from "../order-stats/OrderStatsDeliveryZoneSkeleton";
 import SelectSingleSimple from "@/components/ui/selectSingleSimple";
+import { useGetAllBusiness } from "@/mutations/business.mutation";
 
 const chartConfig = {
   order_count: {
@@ -49,6 +50,9 @@ const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
 const monthsAgo = subMonths(new Date(), 1);
 
 export function OrderStatsDeliveryZoneSection({ showDetailed = true }: { showDetailed?: boolean }) {
+  const { data: business, isLoading: isFetchingBranch } =
+    useGetAllBusiness();
+
   const { control, watch, setValue } = useForm<{
     branch?: string;
     date: DateRange;
@@ -56,7 +60,7 @@ export function OrderStatsDeliveryZoneSection({ showDetailed = true }: { showDet
 
   }>({
     defaultValues: {
-      branch: "all",
+      branch: undefined,
       date: {
         from: monthsAgo,
         to: tomorrow,
@@ -88,15 +92,25 @@ export function OrderStatsDeliveryZoneSection({ showDetailed = true }: { showDet
         {showDetailed && (
           <div className="flex items-center gap-4 flex-wrap max-w-max">
             <Controller
-              name='branch'
+              name="branch"
               control={control}
               render={({ field }) => (
-                <SelectBranchCombo
-                  value={watch('branch')}
-                  onChange={(new_value) => setValue('branch', new_value)}
-                  // placeholder='Filter Branch'
+                <SelectSingleCombo
+                  name="branch"
+                  value={field.value?.toString() || ""}
+                  onChange={(val) => field.onChange(Number(val))}
+                  options={
+                    business?.map((b) => ({
+                      label: b.name,
+                      value: b.id.toString(),
+                    })) || []
+                  }
+                  valueKey="value"
+                  labelKey="label"
                   variant="light"
                   size="thin"
+                  placeholder="Select Business"
+                  isLoadingOptions={isFetchingBranch}
                 />
               )}
             />

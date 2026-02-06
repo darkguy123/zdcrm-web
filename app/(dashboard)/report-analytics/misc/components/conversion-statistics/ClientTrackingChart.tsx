@@ -3,7 +3,7 @@
 import { Controller, useForm } from "react-hook-form";
 import { CartesianGrid, Legend, XAxis, YAxis, Area, AreaChart } from "recharts";
 
-import { Spinner } from "@/components/ui";
+import { SelectSingleCombo, Spinner } from "@/components/ui";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ChartContainer,
@@ -15,6 +15,7 @@ import { SelectBranchCombo } from "@/components/ui";
 
 import { useGetClientTrackingStats } from "../../api";
 import { useGetAllBranches } from "@/app/(dashboard)/admin/businesses/misc/api";
+import { useGetAllBusiness } from "@/mutations/business.mutation";
 
 const chartConfig = {
   new_customers: {
@@ -35,8 +36,8 @@ function ClientTrackingChart() {
       branch: undefined,
     },
   });
-  const { data: allBranches, isLoading: isFetchingBranch } =
-    useGetAllBranches();
+  const { data: business, isLoading: isFetchingBranch } =
+    useGetAllBusiness();
   const { data, isLoading, isFetching } = useGetClientTrackingStats({
     branch: watch("branch") == "all" ? undefined : watch("branch"),
   });
@@ -55,13 +56,21 @@ function ClientTrackingChart() {
             name="branch"
             control={control}
             render={({ field }) => (
-              <SelectBranchCombo
-                name="branch-filter"
-                value={watch("branch")}
-                onChange={(new_value) => setValue("branch", new_value)}
-                placeholder="Filter Branch"
+              <SelectSingleCombo
+                name="branch"
+                value={field.value?.toString() || ""}
+                onChange={(val) => field.onChange(Number(val))}
+                options={
+                  business?.map((b) => ({
+                    label: b.name,
+                    value: b.id.toString(),
+                  })) || []
+                }
+                valueKey="value"
+                labelKey="label"
                 variant="light"
                 size="thin"
+                placeholder="Select Business"
                 isLoadingOptions={isFetchingBranch}
               />
             )}
