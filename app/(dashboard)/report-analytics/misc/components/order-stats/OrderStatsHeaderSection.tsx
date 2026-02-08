@@ -5,20 +5,21 @@ import { subMonths } from "date-fns";
 
 import { useGetAllBranches } from "@/app/(dashboard)/admin/businesses/misc/api";
 import SelectSingleSimple from "@/components/ui/selectSingleSimple";
-import { SelectBranchCombo } from "@/components/ui";
+import { SelectBranchCombo, SelectSingleCombo } from "@/components/ui";
 import { RangeAndCustomDatePicker, Spinner } from "@/components/ui";
 
 import { useGeTOrderStats } from "../../api";
 import OrderStatsCard from "./OrderStatsCard";
 import OrderStatsCardSkeleton from "./OrderStatsSkeleton";
+import { useGetAllBusiness } from "@/mutations/business.mutation";
 
 const today = new Date();
 const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
 const monthsAgo = subMonths(new Date(), 20);
 
 const OrderStatsHeaderSection = () => {
-  const { data: allBranches, isLoading: isFetchingBranch } =
-    useGetAllBranches();
+  const { data: business, isLoading: isFetchingBranch } =
+    useGetAllBusiness();
 
   const { control, register, watch, setValue } = useForm<{
     branch?: string;
@@ -26,7 +27,7 @@ const OrderStatsHeaderSection = () => {
     period: "today" | "week" | "month" | "year" | "custom";
   }>({
     defaultValues: {
-      branch: "all",
+      branch: undefined,
       date: {
         from: monthsAgo,
         to: tomorrow,
@@ -57,13 +58,21 @@ const OrderStatsHeaderSection = () => {
             name="branch"
             control={control}
             render={({ field }) => (
-              <SelectBranchCombo
-                noLabel
-                value={watch("branch")}
-                onChange={(new_value) => setValue("branch", new_value)}
-                placeholder="Filter Branch"
+              <SelectSingleCombo
+                name="branch"
+                value={field.value?.toString() || ""}
+                onChange={(val) => field.onChange(Number(val))}
+                options={
+                  business?.map((b) => ({
+                    label: b.name,
+                    value: b.id.toString(),
+                  })) || []
+                }
+                valueKey="value"
+                labelKey="label"
                 variant="light"
-                size="thin"
+                size="thin"                
+                placeholder="Select Business"
                 isLoadingOptions={isFetchingBranch}
               />
             )}
@@ -80,11 +89,11 @@ const OrderStatsHeaderSection = () => {
                 setValue(
                   "period",
                   value.dateType as
-                    | "today"
-                    | "week"
-                    | "month"
-                    | "year"
-                    | "custom"
+                  | "today"
+                  | "week"
+                  | "month"
+                  | "year"
+                  | "custom"
                 );
               }
             }}

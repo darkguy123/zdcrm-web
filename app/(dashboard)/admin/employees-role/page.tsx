@@ -113,7 +113,7 @@ const Page = () => {
   if (usersError || rolesError) return <div>Error: {(usersError || rolesError)?.message}</div>;
 
   return (
-    <section className="mt-7 pb-7 mx-10 rounded-xl bg-white border-[1px] border-[#0F172B1A] px-[118px] pt-[35px]">
+    <section className="mt-7 pb-7 mx-10 rounded-xl bg-white border-[1px] border-[#0F172B1A] px-6 pt-[35px]">
       <div className="flex justify-between items-end">
         <div className="flex flex-col gap-2">
           <h1 className="text-xl font-medium">Employee Management</h1>
@@ -143,7 +143,7 @@ const Page = () => {
             {isSavingEditedUsers ? 'Saving...' : 'Save Changes'}
           </Button>
 
-          <Sheet>
+          {/* <Sheet>
             <SheetTrigger asChild>
               <Button className="h-12 flex gap-4 bg-transparent text-sm px-6 text-[#111827] border border-solid rounded-[10px]">
                 Add Employee
@@ -181,7 +181,7 @@ const Page = () => {
                 </SheetClose>
               </SheetFooter>
             </SheetContent>
-          </Sheet>
+          </Sheet> */}
         </div>
       </div>
       <Table>

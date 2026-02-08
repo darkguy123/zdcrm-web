@@ -48,8 +48,8 @@ function Calendar({
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 !min-w-[350px] !w-full",
         month: "space-y-4 !w-full flex flex-col items-center justify-center",
         caption: "flex justify-center pt-1 relative items-center min-w-[300px]",
-        caption_label: "!hidden text-[0.2rem] font-light",
-        caption_dropdowns: "flex justify-center gap-1 ",
+        caption_label: "text-sm font-light",
+        caption_dropdowns: "flex justify-center gap-1",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "unstyled" }),

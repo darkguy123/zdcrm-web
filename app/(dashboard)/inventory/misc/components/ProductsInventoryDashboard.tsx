@@ -76,7 +76,7 @@ export default function ProductsInventoryDashboard() {
       size: pageSize,
       search: debouncedSearchText,
       category: selectedCategory,
-      branch: selectedBranch,
+      business: selectedBranch,
       location: selectedLocation,
       date_from: watch("date").from?.toISOString().split("T")[0],
       date_to: watch("date").to?.toISOString().split("T")[0],

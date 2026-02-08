@@ -11,7 +11,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { RangeAndCustomDatePicker, Spinner } from "@/components/ui";
+import { RangeAndCustomDatePicker, SelectSingleCombo, Spinner } from "@/components/ui";
 import {
   Bar,
   BarChart,
@@ -27,6 +27,7 @@ import { Controller, useForm } from "react-hook-form";
 import { subMonths } from "date-fns";
 import { OrderStatsDeliveryZoneChartSkeleton } from "./OrderStatsDeliveryZoneSkeleton";
 import { SelectBranchCombo } from '@/components/ui';
+import { useGetAllBusiness } from "@/mutations/business.mutation";
 
 const chartConfig = {
   order_count: {
@@ -50,7 +51,7 @@ export function OrderStatsDeliveryZoneSection({ showDetailed = true }: { showDet
     period: "today" | "week" | "month" | "year" | "custom";
   }>({
     defaultValues: {
-      branch: "all",
+      branch: undefined,
       date: {
         from: monthsAgo,
         to: tomorrow,
@@ -58,6 +59,9 @@ export function OrderStatsDeliveryZoneSection({ showDetailed = true }: { showDet
       period: 'month',
     },
   });
+
+  const { data: business, isLoading: isFetchingBranch } =
+    useGetAllBusiness();
 
   const branch = watch("branch");
   const period = watch("period");
@@ -77,6 +81,8 @@ export function OrderStatsDeliveryZoneSection({ showDetailed = true }: { showDet
   });
 
 
+
+
   const chartDataRaw = Array.isArray(data?.data?.delivery_stats) ? data!.data.delivery_stats : [];
   const tickInterval = chartDataRaw.length > 8 ? Math.ceil(chartDataRaw.length / 8) : 0;
 
@@ -91,15 +97,25 @@ export function OrderStatsDeliveryZoneSection({ showDetailed = true }: { showDet
         {showDetailed && (
           <div className="flex items-center gap-4 flex-wrap max-w-max">
             <Controller
-              name='branch'
+              name="branch"
               control={control}
               render={({ field }) => (
-                <SelectBranchCombo
-                  value={watch('branch')}
-                  onChange={(new_value) => setValue('branch', new_value)}
-                  // placeholder='Filter Branch'
+                <SelectSingleCombo
+                  name="branch"
+                  value={field.value?.toString() || ""}
+                  onChange={(val) => field.onChange(Number(val))}
+                  options={
+                    business?.map((b) => ({
+                      label: b.name,
+                      value: b.id.toString(),
+                    })) || []
+                  }
+                  valueKey="value"
+                  labelKey="label"
                   variant="light"
                   size="thin"
+                  placeholder="Select Business"
+                  isLoadingOptions={isFetchingBranch}
                 />
               )}
             />

@@ -5,17 +5,18 @@ import { subMonths } from "date-fns";
 
 import { useGetAllBranches } from "@/app/(dashboard)/admin/businesses/misc/api";
 import SelectSingleSimple from "@/components/ui/selectSingleSimple";
-import { SelectBranchCombo } from "@/components/ui";
+import { SelectBranchCombo, SelectSingleCombo } from "@/components/ui";
 
 import { useGetFinancialReportStats, useGeTOrderStats } from "../../api";
 import OrderStatsCard from "./FinancialStatsCard";
 import OrderStatsCardSkeleton from "./OrderStatsSkeleton";
 import { RangeAndCustomDatePicker, Spinner } from "@/components/ui";
 import { monthsAgo, tomorrow } from "@/utils/functions";
+import { useGetAllBusiness } from "@/mutations/business.mutation";
 
 const FinancialStatsHeaderSection = () => {
-  const { data: allBranches, isLoading: isFetchingBranch } =
-    useGetAllBranches();
+  const { data: business, isLoading: isFetchingBranch } =
+    useGetAllBusiness();
 
   const { control, register, watch, setValue } = useForm<{
     branch?: string;
@@ -55,13 +56,21 @@ const FinancialStatsHeaderSection = () => {
             name="branch"
             control={control}
             render={({ field }) => (
-              <SelectBranchCombo
-                noLabel
-                value={watch("branch")}
-                onChange={(new_value) => setValue("branch", new_value)}
-                placeholder="Filter Branch"
+              <SelectSingleCombo
+                name="branch"
+                value={field.value?.toString() || ""}
+                onChange={(val) => field.onChange(Number(val))}
+                options={
+                  business?.map((b) => ({
+                    label: b.name,
+                    value: b.id.toString(),
+                  })) || []
+                }
+                valueKey="value"
+                labelKey="label"
                 variant="light"
                 size="thin"
+                placeholder="Select Business"
                 isLoadingOptions={isFetchingBranch}
               />
             )}

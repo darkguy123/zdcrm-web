@@ -27,14 +27,14 @@ const inviteEmployeeSchema = z.object({
       message: "Select role",
     })
     .min(1, "Role is required"),
-  branch_ids: z
-    .array(
-      z.coerce.number({
-        required_error: "At least one branch must be selected",
-        invalid_type_error: "Branch ID must be a number",
-      })
-    )
-    .min(1, "At least one branch must be selected"),
+  // branch_ids: z
+  //   .array(
+  //     z.coerce.number({
+  //       required_error: "At least one branch must be selected",
+  //       invalid_type_error: "Branch ID must be a number",
+  //     })
+  //   )
+  //   .min(1, "At least one branch must be selected"),
 });
 
 type InviteEmployeeFormData = z.infer<typeof inviteEmployeeSchema>;
@@ -57,7 +57,7 @@ const InviteEmployeePage = () => {
       name: "",
       email: "",
       role: "",
-      branch_ids: [],
+      // branch_ids: [],
     },
   });
   const { data, isLoading: isLoadingRoles } = useGetRoles()
@@ -74,7 +74,7 @@ const InviteEmployeePage = () => {
     mutate({
       role: data.role,
       email: data.email,
-      branch_ids: data.branch_ids
+      // branch_ids: data.branch_ids
     }, {
       onSuccess(data, variables, context) {
         openSuccessModal();
@@ -184,7 +184,7 @@ const InviteEmployeePage = () => {
             )}
           />
 
-          <Controller
+          {/* <Controller
             name="branch_ids"
             control={control}
             render={({ field }) => (
@@ -206,10 +206,10 @@ const InviteEmployeePage = () => {
                 }
               />
             )}
-          />
+          /> */}
 
           <div className="flex flex-col gap-6">
-            <p className="text-sm text-center mt-14">
+            <p className="text-sm text-center mt-4">
               Recipient will receive an invite email notification and must
               accept notification prompt on or before 3days
             </p>

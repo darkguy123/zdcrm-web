@@ -7,9 +7,10 @@ import { DateRange } from 'react-day-picker';
 import { Controller, useForm } from 'react-hook-form';
 import { useGetAllBranches } from '@/app/(dashboard)/admin/businesses/misc/api';
 import { subMonths } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle, RangeAndCustomDatePicker, Spinner } from '@/components/ui';
+import { Card, CardContent, CardHeader, CardTitle, RangeAndCustomDatePicker, SelectSingleCombo, Spinner } from '@/components/ui';
 import SelectSingleSimple from '@/components/ui/selectSingleSimple';
 import { SelectBranchCombo } from '@/components/ui';
+import { useGetAllBusiness } from '@/mutations/business.mutation';
 
 
 const today = new Date();
@@ -17,14 +18,14 @@ const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
 const monthsAgo = subMonths(new Date(), 1);
 
 const OrderStatsTopProducts: React.FC = () => {
-  const { data: allBranches, isLoading: isFetchingBranch } = useGetAllBranches();
+  const { data: business, isLoading: isFetchingBranch } = useGetAllBusiness();
   const { control, watch, setValue } = useForm<{
     branch?: string;
     date: DateRange;
     period: "today" | "week" | "month" | "year" | "custom";
   }>({
     defaultValues: {
-      branch: "all",
+      branch: undefined,
       date: {
         from: monthsAgo,
         to: tomorrow,
@@ -32,6 +33,7 @@ const OrderStatsTopProducts: React.FC = () => {
       period: 'today',
     },
   });
+
 
   const { data, isLoading, isFetching } = useGetTopProducts({
     branch: watch('branch') == "all" ? undefined : watch('branch'),
@@ -54,19 +56,29 @@ const OrderStatsTopProducts: React.FC = () => {
 
         <div className="flex items-center justify-end gap-2 flex-wrap max-w-max">
           <Controller
-            name='branch'
+            name="branch"
             control={control}
             render={({ field }) => (
-              <SelectBranchCombo
-                value={watch('branch')}
-                onChange={(new_value) => setValue('branch', new_value)}
-                placeholder='Filter Branch'
+              <SelectSingleCombo
+                name="branch"
+                value={field.value?.toString() || ""}
+                onChange={(val) => field.onChange(Number(val))}
+                options={
+                  business?.map((b) => ({
+                    label: b.name,
+                    value: b.id.toString(),
+                  })) || []
+                }
+                valueKey="value"
+                labelKey="label"
                 variant="light"
                 size="thin"
+                placeholder="Select Business"
                 isLoadingOptions={isFetchingBranch}
               />
             )}
           />
+
           <RangeAndCustomDatePicker
             className="max-w-max"
             variant="light"

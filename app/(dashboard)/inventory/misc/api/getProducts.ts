@@ -1,37 +1,34 @@
-import { APIAxios } from "@/utils/axios"
-import { useQuery } from "@tanstack/react-query"
+import { APIAxios } from "@/utils/axios";
+import { useQuery } from "@tanstack/react-query";
 import { TProductCategory } from "../types";
 import { Createdby } from "../types/stock";
 
-
 interface FetchOptions {
   category?: number;
-  branch?: number | string;
+  business?: number;
 }
-const fetchProducts = async (options: FetchOptions = {}): Promise<ProductsAPIReponse[]> => {
+const fetchProducts = async (
+  options: FetchOptions = {}
+): Promise<ProductsAPIReponse[]> => {
   const params = new URLSearchParams();
-  if (options.category) params.append('category', options.category.toString());
-  if (options.branch) params.append('branch', options.branch.toString());
-  const res = await APIAxios.get('/inventory/products/', { params })
-  return res.data.data
-}
+  if (options.category) params.append("category", options.category.toString());
+  if (options.business) params.append("business", options.business.toString());
+  const res = await APIAxios.get("/inventory/products/", { params });
+  return res.data.data;
+};
 
 export const useGetProducts = (options: FetchOptions = {}) => {
   return useQuery({
-    queryKey: ['products', options.category, options],
+    queryKey: ["products", options],
     queryFn: () => fetchProducts(options),
-  })
-}
-
-
+  });
+};
 
 interface RootObject {
   data: ProductsAPIReponse[];
   status: number;
   message: null;
 }
-
-
 
 export interface ProductsAPIReponse {
   id: number;
