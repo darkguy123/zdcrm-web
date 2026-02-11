@@ -7,11 +7,13 @@ export interface TOrder {
   approved_by: Createdby | null;
   completed_by: Createdby | null;
   discount: Discount | null;
+  is_external_order: boolean;
   order_number: string;
   enquiry_channel: string;
   enquiry_occasion: string;
   branch: Branch;
   message: string | null;
+  metadata: WebsiteMetadata;
   status: string;
   payment_status: string;
   payment_options: string;
@@ -33,6 +35,27 @@ export interface TOrder {
   create_date: string;
   update_date: string;
 }
+
+export interface WebsiteMetaDataItem {
+  id: number;
+  key: string;
+  value: string;
+}
+
+export interface WebsiteLineItem {
+  id: number;
+  name: string;
+  product_id: number;
+  quantity: number;
+  subtotal: string;
+  total: string;
+  meta_data: WebsiteMetaDataItem[];
+}
+
+export interface WebsiteMetadata {
+  line_items: WebsiteLineItem[];
+}
+
 // Merged order item type (moved to bottom after all referenced types)
 export interface OrderItem {
   id: number;
@@ -94,7 +117,6 @@ interface Items2 {
   is_sorted: boolean;
   properties: Property[];
 }
-
 
 interface Property {
   id: number;
