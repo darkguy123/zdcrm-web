@@ -60,6 +60,7 @@ import OrderFormItemsSection from "../../misc/components/OrderFormItemsSection";
 import { useCreateOrder, useGeTOrderDeliveryLocations, useGeTOrderDetail } from "../../misc/api";
 import { useGetAllBranches } from "@/app/(dashboard)/admin/businesses/misc/api";
 import { TOrder } from "../../misc/types";
+import { useGetAllBusiness } from "@/mutations/business.mutation";
 
 
 
@@ -69,6 +70,7 @@ const NewOrderPage = () => {
 
   const { data: orderData, isLoading: isLoadingOrderData } = useGeTOrderDetail(order_id ?? '')
   const { data: branches, isLoading: branchesLoading } = useGetAllBranches();
+  const { data: businesses, isLoading: businessesLoading } = useGetAllBusiness();
   const { data: categories, isLoading: categoriesLoading } = useGetCategories();
   const { data: products, isLoading: productsLoading } = useGetProducts();
   const { data: dispatchLocations, isLoading: dispatchLocationsLoading } = useGeTOrderDeliveryLocations();
@@ -281,84 +283,10 @@ const NewOrderPage = () => {
         <form onSubmit={handleSubmit(onSubmit)}>
           <Accordion
             type="multiple"
-            defaultValue={["website-order", "client-information", "order-information", "delivery-information", "order-Instruction", "payment-information",]}
+            defaultValue={["client-information", "website-order", "order-information", "delivery-information", "order-Instruction", "payment-information",]}
             className="w-full"
           >
 
-            {/* /////////////////////////////////////////////////////////////////////////////// */}
-            {/* /////////////                WEBSITE INFORMATION                 ///////////// */}
-            {/* /////////////////////////////////////////////////////////////////////////////// */}
-
-            {
-              orderData?.is_external_order &&
-
-              <AccordionItem value="website-order">
-                <AccordionTrigger className="py-4">
-                  <div className="flex items-center gap-5">
-                    <div className="h-10 w-10 flex items-center justify-center bg-custom-white rounded-full">
-                      <Image src="/img/book.svg" alt="" width={24} height={24} />
-                    </div>
-                    <p className="text-custom-blue font-medium">Website Order Details</p>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="flex flex-col pt-3 pb-14 gap-y-8">
-                  {orderData?.metadata?.line_items?.length ? (
-                    <div className="flex flex-col gap-6">
-                      {orderData.metadata.line_items.map((item: any, index: number) => (
-                        <div
-                          key={item.id || index}
-                          className="border rounded-lg p-6 flex flex-col gap-4"
-                        >
-                          {/* Product Name */}
-                          <div className="flex justify-between">
-                            <p className="font-semibold text-lg text-custom-blue">
-                              {item.name}
-                            </p>
-                            <p className="text-sm font-medium">
-                              Quantity: {item.quantity}
-                            </p>
-                          </div>
-
-                          {/* Meta Data (Options) */}
-                          {item.meta_data?.length > 0 && (
-                            <div className="flex flex-col gap-2 text-sm [&>div:not(:last-child)]:border-b">
-                              {item.meta_data.map((meta: any, metaIndex: number) => (
-                                <div
-                                  key={meta.id || metaIndex}
-                                  className="flex justify-between pb-1 border-gray-200"
-                                >
-                                  <span className="text-gray-600 capitalize">
-                                    {meta.key?.replaceAll("_", " ")}
-                                  </span>
-                                  <span className="font-medium text-right">
-                                    {meta.value}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-
-                          {/* Total */}
-                          <div className="flex justify-between pt-2 font-semibold">
-                            <span>Total</span>
-                            <span>
-                              {formatCurrency(
-                                Number(item.total),
-                                orderData.payment_currency as 'NGN' | 'USD'
-                              )}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-500">No website order data found.</p>
-                  )}
-                </AccordionContent>
-
-              </AccordionItem>
-
-            }
 
             {/* /////////////////////////////////////////////////////////////////////////////// */}
             {/* /////////////                CLIENT INFORMATION                 ///////////// */}
@@ -492,6 +420,82 @@ const NewOrderPage = () => {
 
 
             {/* /////////////////////////////////////////////////////////////////////////////// */}
+            {/* /////////////                WEBSITE INFORMATION                 ///////////// */}
+            {/* /////////////////////////////////////////////////////////////////////////////// */}
+
+            {
+              orderData?.is_external_order &&
+
+              <AccordionItem value="website-order">
+                <AccordionTrigger className="py-4">
+                  <div className="flex items-center gap-5">
+                    <div className="h-10 w-10 flex items-center justify-center bg-custom-white rounded-full">
+                      <Image src="/img/book.svg" alt="" width={24} height={24} />
+                    </div>
+                    <p className="text-custom-blue font-medium">Website Order Details</p>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="flex flex-col pt-3 pb-14 gap-y-8">
+                  {orderData?.metadata?.line_items?.length ? (
+                    <div className="flex flex-col gap-6">
+                      {orderData.metadata.line_items.map((item: any, index: number) => (
+                        <div
+                          key={item.id || index}
+                          className="border rounded-lg p-6 flex flex-col gap-4"
+                        >
+                          {/* Product Name */}
+                          <div className="flex justify-between">
+                            <p className="font-semibold text-lg text-custom-blue">
+                              {item.name}
+                            </p>
+                            <p className="text-sm font-medium">
+                              Quantity: {item.quantity}
+                            </p>
+                          </div>
+
+                          {/* Meta Data (Options) */}
+                          {item.meta_data?.length > 0 && (
+                            <div className="flex flex-col gap-2 text-sm [&>div:not(:last-child)]:border-b">
+                              {item.meta_data.map((meta: any, metaIndex: number) => (
+                                <div
+                                  key={meta.id || metaIndex}
+                                  className="flex justify-between pb-1 border-gray-200"
+                                >
+                                  <span className="text-gray-600 capitalize">
+                                    {meta.key?.replaceAll("_", " ")}
+                                  </span>
+                                  <span className="font-medium text-right">
+                                    {meta.value}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Total */}
+                          <div className="flex justify-between pt-2 font-semibold">
+                            <span>Total</span>
+                            <span>
+                              {formatCurrency(
+                                Number(item.total),
+                                orderData.payment_currency as 'NGN' | 'USD'
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">No website order data found.</p>
+                  )}
+                </AccordionContent>
+
+              </AccordionItem>
+
+            }
+
+
+            {/* /////////////////////////////////////////////////////////////////////////////// */}
             {/* /////////////                  ORDER INFORMATION                  ///////////// */}
             {/* /////////////////////////////////////////////////////////////////////////////// */}
             <AccordionItem value="order-information">
@@ -511,13 +515,22 @@ const NewOrderPage = () => {
                       name="branch"
                       control={control}
                       render={({ field }) => (
-                        <SelectBranchCombo
-                          name="branch"
-                          value={field.value?.toString() || ''}
+                        <SelectSingleCombo
+                          name="branch" // ✅ REQUIRED — fixes the type error
+                          label="Business"
+                          value={field.value?.toString() || ""}
                           onChange={(val) => field.onChange(Number(val))}
+                          options={
+                            businesses?.map((b) => ({
+                              label: b.name,
+                              value: b.id.toString(),
+                            })) || []
+                          }
+                          valueKey="value"
+                          labelKey="label"
                           className="!h-10 min-w-40"
-                          placeholder="Select Branch"
-                          isLoadingOptions={branchesLoading}
+                          placeholder="Select Business"
+                          isLoadingOptions={businessesLoading}
                           hasError={!!errors.branch}
                           errorMessage={errors.branch?.message}
                           variant="inputButton"
