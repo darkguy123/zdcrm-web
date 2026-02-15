@@ -60,6 +60,7 @@ import OrderFormItemsSection from "../../misc/components/OrderFormItemsSection";
 import { useCreateOrder, useGeTOrderDeliveryLocations, useGeTOrderDetail } from "../../misc/api";
 import { useGetAllBranches } from "@/app/(dashboard)/admin/businesses/misc/api";
 import { TOrder } from "../../misc/types";
+import { useGetAllBusiness } from "@/mutations/business.mutation";
 
 
 
@@ -69,6 +70,7 @@ const NewOrderPage = () => {
 
   const { data: orderData, isLoading: isLoadingOrderData } = useGeTOrderDetail(order_id ?? '')
   const { data: branches, isLoading: branchesLoading } = useGetAllBranches();
+  const { data: businesses, isLoading: businessesLoading } = useGetAllBusiness();
   const { data: categories, isLoading: categoriesLoading } = useGetCategories();
   const { data: products, isLoading: productsLoading } = useGetProducts();
   const { data: dispatchLocations, isLoading: dispatchLocationsLoading } = useGeTOrderDeliveryLocations();
@@ -109,70 +111,70 @@ const NewOrderPage = () => {
 
   React.useEffect(() => {
     if (!isLoadingOrderData && !!orderData) {
-  reset({
-    customer: {
-      name: orderData.customer.name,
-      phone: orderData.customer.phone,
-      email: orderData.customer.email ?? undefined
-    },
-    enquiry_channel: orderData.enquiry_channel,
-    enquiry_occasion: orderData.enquiry_occasion,
-    // social_media_details: orderData.social_media_details,
-    branch: orderData.branch.id,
-    delivery: {
-      zone: (orderData.delivery?.zone as "LM" | "LC" | "LI" | "OT" | "ND") ?? "LM",
-      method: orderData.delivery?.method as "Dispatch" | "Pickup",
-      dispatch: orderData.delivery?.dispatch?.id?.toString() ?? "",
-      address: orderData.delivery?.address ?? "",
-      recipient_name: orderData.delivery?.recipient_name ?? "",
-      recipient_phone: orderData.delivery?.recipient_phone ?? "",
-      recipient_alternative_phone: orderData.delivery?.recipient_alternative_phone ?? "",
-      residence_type: orderData.delivery?.residence_type ?? "",
-      delivery_date: orderData.delivery?.delivery_date ?? format(new Date(), 'yyyy-MM-dd'),
-      delivery_time: orderData.delivery?.delivery_time ?? "15:00",
-      note: orderData.delivery?.note ?? "",
-      fee: orderData.delivery?.fee ? parseInt(orderData.delivery?.fee) : undefined,
-      is_custom_delivery: orderData.delivery?.is_custom_delivery ?? false,
-    },
-    message: orderData.message ?? "",
-    items: orderData.items?.map(item => ({
-      category: item.product?.category.id,
-      product_id: item.product.id,
-      quantity: item.quantity,
-      properties: item.properties.reduce((acc, prop) => ({
-        ...acc,
-        ...(prop.toppings && { toppings: prop.toppings?.id?.toString() }),
-        ...(prop.glass_vase && { glass_vase: prop.glass_vase?.id?.toString() }),
-        // Add other properties here only if they exist on 'Property'
-      }), {}),
-      inventories: item.inventories.map(inventory => ({
-        stock_inventory_id: inventory.stock_inventory?.id,
-        product_inventory_id: inventory.product_inventory?.id,
-        variations: inventory.variations?.map(variation => ({
-          stock_variation_id: variation.id,
-          quantity: variation.quantity,
-        }))
-      }))
-    })) ?? [],
-    payment_options: orderData.payment_options as
-      | "not_paid_go_ahead"
-      | "paid_website_card"
-      | "paid_naira_transfer"
-      | "paid_pos"
-      | "paid_usd_transfer"
-      | "paid_paypal"
-      | "cash_paid"
-      | "part_payment_cash"
-      | "part_payment_transfer"
-      | "paid_bitcoin"
-      | "not_received_paid"
-      | undefined,
-    payment_currency: orderData.payment_currency as "NGN" | "USD",
-    payment_proof: orderData.payment_proof,
-    payment_receipt_name: orderData.payment_receipt_name || '',
-    amount_paid_in_usd: orderData.amount_paid_in_usd?.toString() || undefined,
-    initial_amount_paid: orderData.initial_amount_paid?.toString() || undefined,
-  });
+      reset({
+        customer: {
+          name: orderData.customer.name,
+          phone: orderData.customer.phone,
+          email: orderData.customer.email ?? undefined
+        },
+        enquiry_channel: orderData.enquiry_channel,
+        enquiry_occasion: orderData.enquiry_occasion,
+        // social_media_details: orderData.social_media_details,
+        branch: orderData?.branch?.id,
+        delivery: {
+          zone: (orderData.delivery?.zone as "LM" | "LC" | "LI" | "OT" | "ND") ?? "LM",
+          method: orderData.delivery?.method as "Dispatch" | "Pickup",
+          dispatch: orderData.delivery?.dispatch?.id?.toString() ?? "",
+          address: orderData.delivery?.address ?? "",
+          recipient_name: orderData.delivery?.recipient_name ?? "",
+          recipient_phone: orderData.delivery?.recipient_phone ?? "",
+          recipient_alternative_phone: orderData.delivery?.recipient_alternative_phone ?? "",
+          residence_type: orderData.delivery?.residence_type ?? "",
+          delivery_date: orderData.delivery?.delivery_date ?? format(new Date(), 'yyyy-MM-dd'),
+          delivery_time: orderData.delivery?.delivery_time ?? "15:00",
+          note: orderData.delivery?.note ?? "",
+          fee: orderData.delivery?.fee ? parseInt(orderData.delivery?.fee) : undefined,
+          is_custom_delivery: orderData.delivery?.is_custom_delivery ?? false,
+        },
+        message: orderData.message ?? "",
+        items: orderData.items?.map(item => ({
+          category: item.product?.category.id,
+          product_id: item.product.id,
+          quantity: item.quantity,
+          properties: item.properties.reduce((acc, prop) => ({
+            ...acc,
+            ...(prop.toppings && { toppings: prop.toppings?.id?.toString() }),
+            ...(prop.glass_vase && { glass_vase: prop.glass_vase?.id?.toString() }),
+            // Add other properties here only if they exist on 'Property'
+          }), {}),
+          inventories: item.inventories.map(inventory => ({
+            stock_inventory_id: inventory.stock_inventory?.id,
+            product_inventory_id: inventory.product_inventory?.id,
+            variations: inventory.variations?.map(variation => ({
+              stock_variation_id: variation.id,
+              quantity: variation.quantity,
+            }))
+          }))
+        })) ?? [],
+        payment_options: orderData.payment_options as
+          | "not_paid_go_ahead"
+          | "paid_website_card"
+          | "paid_naira_transfer"
+          | "paid_pos"
+          | "paid_usd_transfer"
+          | "paid_paypal"
+          | "cash_paid"
+          | "part_payment_cash"
+          | "part_payment_transfer"
+          | "paid_bitcoin"
+          | "not_received_paid"
+          | undefined,
+        payment_currency: orderData.payment_currency as "NGN" | "USD",
+        payment_proof: orderData.payment_proof,
+        payment_receipt_name: orderData.payment_receipt_name || '',
+        amount_paid_in_usd: orderData.amount_paid_in_usd?.toString() || undefined,
+        initial_amount_paid: orderData.initial_amount_paid?.toString() || undefined,
+      });
     }
   }, [orderData, isLoadingOrderData, reset]);
   console.log(errors)
@@ -271,10 +273,6 @@ const NewOrderPage = () => {
   }
   const watchedClientPhoneNumber = watch('customer.phone')
 
-
-
-  console.log(getValues('items'))
-
   if (isLoadingOrderData || !orderData) {
     return <div className="w-full h-full flex items-center justify-center"><Spinner /></div>
   }
@@ -285,9 +283,11 @@ const NewOrderPage = () => {
         <form onSubmit={handleSubmit(onSubmit)}>
           <Accordion
             type="multiple"
-            defaultValue={["client-information", "order-information", "delivery-information", "order-Instruction", "payment-information",]}
+            defaultValue={["client-information", "website-order", "order-information", "delivery-information", "order-Instruction", "payment-information",]}
             className="w-full"
           >
+
+
             {/* /////////////////////////////////////////////////////////////////////////////// */}
             {/* /////////////                CLIENT INFORMATION                 ///////////// */}
             {/* /////////////////////////////////////////////////////////////////////////////// */}
@@ -420,6 +420,82 @@ const NewOrderPage = () => {
 
 
             {/* /////////////////////////////////////////////////////////////////////////////// */}
+            {/* /////////////                WEBSITE INFORMATION                 ///////////// */}
+            {/* /////////////////////////////////////////////////////////////////////////////// */}
+
+            {
+              orderData?.is_external_order &&
+
+              <AccordionItem value="website-order">
+                <AccordionTrigger className="py-4">
+                  <div className="flex items-center gap-5">
+                    <div className="h-10 w-10 flex items-center justify-center bg-custom-white rounded-full">
+                      <Image src="/img/book.svg" alt="" width={24} height={24} />
+                    </div>
+                    <p className="text-custom-blue font-medium">Website Order Details</p>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="flex flex-col pt-3 pb-14 gap-y-8">
+                  {orderData?.metadata?.line_items?.length ? (
+                    <div className="flex flex-col gap-6">
+                      {orderData.metadata.line_items.map((item: any, index: number) => (
+                        <div
+                          key={item.id || index}
+                          className="border rounded-lg p-6 flex flex-col gap-4"
+                        >
+                          {/* Product Name */}
+                          <div className="flex justify-between">
+                            <p className="font-semibold text-lg text-custom-blue">
+                              {item.name}
+                            </p>
+                            <p className="text-sm font-medium">
+                              Quantity: {item.quantity}
+                            </p>
+                          </div>
+
+                          {/* Meta Data (Options) */}
+                          {item.meta_data?.length > 0 && (
+                            <div className="flex flex-col gap-2 text-sm [&>div:not(:last-child)]:border-b">
+                              {item.meta_data.map((meta: any, metaIndex: number) => (
+                                <div
+                                  key={meta.id || metaIndex}
+                                  className="flex justify-between pb-1 border-gray-200"
+                                >
+                                  <span className="text-gray-600 capitalize">
+                                    {meta.key?.replaceAll("_", " ")}
+                                  </span>
+                                  <span className="font-medium text-right">
+                                    {meta.value}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Total */}
+                          <div className="flex justify-between pt-2 font-semibold">
+                            <span>Total</span>
+                            <span>
+                              {formatCurrency(
+                                Number(item.total),
+                                orderData.payment_currency as 'NGN' | 'USD'
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">No website order data found.</p>
+                  )}
+                </AccordionContent>
+
+              </AccordionItem>
+
+            }
+
+
+            {/* /////////////////////////////////////////////////////////////////////////////// */}
             {/* /////////////                  ORDER INFORMATION                  ///////////// */}
             {/* /////////////////////////////////////////////////////////////////////////////// */}
             <AccordionItem value="order-information">
@@ -439,13 +515,22 @@ const NewOrderPage = () => {
                       name="branch"
                       control={control}
                       render={({ field }) => (
-                        <SelectBranchCombo
-                          name="branch"
-                          value={field.value?.toString() || ''}
+                        <SelectSingleCombo
+                          name="branch" // ✅ REQUIRED — fixes the type error
+                          label="Business"
+                          value={field.value?.toString() || ""}
                           onChange={(val) => field.onChange(Number(val))}
+                          options={
+                            businesses?.map((b) => ({
+                              label: b.name,
+                              value: b.id.toString(),
+                            })) || []
+                          }
+                          valueKey="value"
+                          labelKey="label"
                           className="!h-10 min-w-40"
-                          placeholder="Select Branch"
-                          isLoadingOptions={branchesLoading}
+                          placeholder="Select Business"
+                          isLoadingOptions={businessesLoading}
                           hasError={!!errors.branch}
                           errorMessage={errors.branch?.message}
                           variant="inputButton"
@@ -664,7 +749,7 @@ const NewOrderPage = () => {
                     name="delivery.delivery_time"
                     hasError={!!errors.delivery?.delivery_time}
                     errorMessage={errors.delivery?.delivery_time?.message}
-                    
+
                   // placeholder="Select delivery date"
                   />
 
