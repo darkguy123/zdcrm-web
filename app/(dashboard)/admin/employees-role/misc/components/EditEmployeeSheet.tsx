@@ -34,7 +34,7 @@ const editEmployeeSchema = z.object({
   email: z.string().email("Invalid email address"),
   phone: z.string().optional(),
   role: z.string().min(1, "Role is required"),
-  // branch_ids: z.array(z.string()).min(1, "At least one branch must be selected"),
+  // business_ids: z.array(z.string()).min(1, "At least one branch must be selected"),
   is_active: z.boolean(),
 });
 
@@ -69,7 +69,7 @@ const EditEmployeeSheet: React.FC<EditEmployeeSheetProps> = ({
       email: "",
       phone: "",
       role: "",
-      // branch_ids: [],
+      // business_ids: [],
       is_active: true,
     },
   });
@@ -96,7 +96,7 @@ const EditEmployeeSheet: React.FC<EditEmployeeSheetProps> = ({
         email: selectedUser.email,
         phone: selectedUser.phone || "",
         role: selectedUser.role_name,
-        // branch_ids: selectedUser.branches?.map((id) => id.toString()) || [],
+        // business_ids: selectedUser.branches?.map((id) => id.toString()) || [],
         is_active: selectedUser.is_active,
       });
     }
@@ -226,17 +226,17 @@ const EditEmployeeSheet: React.FC<EditEmployeeSheetProps> = ({
               Branch Access <span className="text-red-500">*</span>
             </Label>
             <Controller
-              name="branch_ids"
+              name="business_ids"
               control={control}
               render={({ field }) => (
                 <SelectBranchMultiCombo
                   value={field.value}
                   onChange={(vals) => field.onChange(vals)}
-                  name="branch_ids"
+                  name="business_ids"
                   placeholder="Select branch(es)"
                   initialSelectedOptions={initialBranches}
-                  hasError={!!errors.branch_ids}
-                  errorMessage={errors?.branch_ids ? String((errors.branch_ids as any)?.message ?? (errors.branch_ids as any)) : undefined}
+                  hasError={!!errors.business_ids}
+                  errorMessage={errors?.business_ids ? String((errors.business_ids as any)?.message ?? (errors.business_ids as any)) : undefined}
                 />
               )}
             />

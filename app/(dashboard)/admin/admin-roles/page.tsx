@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -24,7 +24,23 @@ const PERMISSIONS = [
   { name: 'Manage Roles', value: 'CAN_MANAGE_ROLES' },
   { name: 'Manage Branches', value: 'CAN_MANAGE_BRANCHES' },
   { name: 'Manage Inventories', value: 'CAN_MANAGE_INVENTORIES' },
-]
+  { name: 'Manage Payments', value: 'CAN_MANAGE_PAYMENTS' },
+  { name: 'Manage Client History', value: 'CAN_MANAGE_CLIENT_HISTORY' },
+  { name: 'Manage Riders History', value: 'CAN_MANAGE_RIDERS_HISTORY' },
+  { name: 'Manage Trash', value: 'CAN_MANAGE_TRASH' },
+  { name: 'Manage Conversion Statistics', value: 'CAN_MANAGE_CONVERSION_STATISTICS' },
+  { name: 'Manage Gift Inventory', value: 'CAN_MANAGE_GIFT_INVENTORY' },
+  { name: 'Manage Cakes & Flower Inventory', value: 'CAN_MANAGE_CAKES_FLOWER_INVENTORY' },
+  { name: 'Manage Store Inventory', value: 'CAN_MANAGE_STORE_INVENTORY' },
+  { name: 'Manage Inventory Alerts', value: 'CAN_MANAGE_INVENTORY_ALERTS' },
+  { name: 'Manage Vendors', value: 'CAN_MANAGE_VENDORS' },
+  { name: 'Manage Reports Overview', value: 'CAN_MANAGE_REPORTS_OVERVIEW' },
+  { name: 'Manage Products', value: 'CAN_MANAGE_PRODUCTS' },
+  { name: 'Manage Dispatch', value: 'CAN_MANAGE_DISPATCH' },
+  { name: 'Manage Discount', value: 'CAN_MANAGE_DISCOUNT' },
+  { name: 'Manage Order Properties', value: 'CAN_MANAGE_ORDER_PROPERTIES' },
+];
+
 
 const AdminRolesPage = () => {
   const { data: rolesData, isLoading: isLoadingRoles } = useGetAllRoles()
@@ -46,6 +62,19 @@ const AdminRolesPage = () => {
     )
   }
 
+  useEffect(() => {
+    const mainElement = document.querySelector("main")
+
+    if (mainElement) {
+      mainElement.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      })
+    }
+  }, [activePermission])
+
+
+
   if (isLoadingRoles) return (
     <div className="flex items-center justify-center py-[30vh]">
       <Spinner size={18} className='' />
@@ -63,10 +92,10 @@ const AdminRolesPage = () => {
         <Tabs
           value={activePermission}
           onValueChange={setActivePermission}
-          //  defaultValue="order"
           orientation="vertical"
           className="flex gap-7 items-stretch"
         >
+
           <TabsList className="flex flex-col mt-5 bg-white w-[290px] h-full items-start p-7 ml-5 gap-5">
             {PERMISSIONS.map((permission) => (
               <TabsTrigger key={permission.value} value={permission.value} className="bg-white p-2">

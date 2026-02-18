@@ -27,7 +27,7 @@ const inviteEmployeeSchema = z.object({
       message: "Select role",
     })
     .min(1, "Role is required"),
-  // branch_ids: z
+  // business_ids: z
   //   .array(
   //     z.coerce.number({
   //       required_error: "At least one branch must be selected",
@@ -57,7 +57,7 @@ const InviteEmployeePage = () => {
       name: "",
       email: "",
       role: "",
-      // branch_ids: [],
+      // business_ids: [],
     },
   });
   const { data, isLoading: isLoadingRoles } = useGetRoles()
@@ -74,7 +74,7 @@ const InviteEmployeePage = () => {
     mutate({
       role: data.role,
       email: data.email,
-      // branch_ids: data.branch_ids
+      // business_ids: data.business_ids
     }, {
       onSuccess(data, variables, context) {
         openSuccessModal();
@@ -185,7 +185,7 @@ const InviteEmployeePage = () => {
           />
 
           {/* <Controller
-            name="branch_ids"
+            name="business_ids"
             control={control}
             render={({ field }) => (
               <SelectBranchMultiCombo
@@ -193,14 +193,14 @@ const InviteEmployeePage = () => {
                 onChange={(vals) =>
                   field.onChange(vals.map((v: string | number) => Number(v)))
                 }
-                name="branch_ids"
+                name="business_ids"
                 placeholder="Select branch(es)"
-                hasError={!!errors.branch_ids}
+                hasError={!!errors.business_ids}
                 errorMessage={
-                  errors?.branch_ids
+                  errors?.business_ids
                     ? String(
-                      (errors.branch_ids as any)?.message ??
-                      (errors.branch_ids as any)
+                      (errors.business_ids as any)?.message ??
+                      (errors.business_ids as any)
                     )
                     : undefined
                 }

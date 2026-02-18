@@ -139,7 +139,7 @@ const OrderSummaryExportModal: React.FC<ModalProps> = ({
                         </div>
 
                         <div className="text-right font-poppins">
-                            <h2 className="text-xl font-semibold">{order.branch.name}</h2>
+                            <h2 className="text-xl font-semibold">{order?.branch?.name}</h2>
                             <p className="text-xs text-balance">113 Freeman St, Adekunle 101223, Lagos, Nigeria, Lagos, Lagos State</p>
                             <p className="text-xs font-medium">zuzudelight@gmail.com | +234 8154354433</p>
                         </div>

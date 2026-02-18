@@ -175,7 +175,7 @@ const SelectBranchCombo = ({
         : raw?.data ?? raw?.data ?? []
       : [];
     return (dataArray as any[]).map((item) => ({
-      id: String(item.id ?? item.branch_id ?? item._id ?? ""),
+      id: String(item.id ?? item.business_id ?? item._id ?? ""),
       name: String(item.name ?? item.branch_name ?? item.title ?? ""),
     }));
   }, [branchesResp]);

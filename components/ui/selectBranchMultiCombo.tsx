@@ -95,7 +95,7 @@ const SelectBranchMultiCombo = ({
     // merge any existing branches names into cache if branchesResp already contains data for this business
     const raw = branchesResp ?? null
     const dataArray = raw ? (Array.isArray(raw) ? raw : (raw?.data ?? raw?.data ?? [])) : []
-    const normalized = (dataArray as any[]).map(item => ({ id: String(item.id ?? item.branch_id ?? item._id ?? ''), name: String(item.name ?? item.branch_name ?? item.title ?? '') }))
+    const normalized = (dataArray as any[]).map(item => ({ id: String(item.id ?? item.business_id ?? item._id ?? ''), name: String(item.name ?? item.branch_name ?? item.title ?? '') }))
     if (normalized && normalized.length) {
       setBranchesMap(prev => ({ ...prev, ...Object.fromEntries((normalized as Branch[]).map((b: Branch) => [String(b.id), b.name])) }))
     }
@@ -133,7 +133,7 @@ const SelectBranchMultiCombo = ({
   const branchesList: Branch[] = React.useMemo(() => {
     const raw = branchesResp ?? null
     const dataArray = raw ? (Array.isArray(raw) ? raw : (raw?.data ?? raw?.data ?? [])) : []
-    return (dataArray as any[]).map(item => ({ id: String(item.id ?? item.branch_id ?? item._id ?? ''), name: String(item.name ?? item.branch_name ?? item.title ?? '') }))
+    return (dataArray as any[]).map(item => ({ id: String(item.id ?? item.business_id ?? item._id ?? ''), name: String(item.name ?? item.branch_name ?? item.title ?? '') }))
   }, [branchesResp])
 
   const filteredBranches = React.useMemo(() => {
