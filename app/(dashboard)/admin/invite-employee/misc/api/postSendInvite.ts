@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 interface sendInviteProps {
   email: string;
   role: string;
-  branch_ids?: number[];
+  business_ids?: number[];
 }
 const sendInvite = async (data: sendInviteProps) => {
   const response = await APIAxios.post("/auth/invite-user/", data);

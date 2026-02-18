@@ -32,7 +32,14 @@ const EnquiryDetailsPage = () => {
     const enquiry_id = useParams().id
     const { data, isLoading, refetch } = useGetEnquiryDetail(enquiry_id as string)
 
-    console.log(data)
+    // console.log(data)
+
+    const discount_amount = Number(data?.discount || '0');
+    const customDiscountAmount = Number(data?.custom_discount_amount || '0');
+    const subtotal = Number(data?.total_selling_price || 0);
+    const deliveryFee = Number(data?.delivery?.dispatch?.delivery_price) || 0;
+    const total = Number(data?.total_amount || 0) - (discount_amount || customDiscountAmount) + deliveryFee;
+    const tax = total - subtotal - deliveryFee;
 
 
     const {
@@ -326,14 +333,30 @@ const EnquiryDetailsPage = () => {
                             })
                         }
 
-                        <section className="flex items-center justify-between pt-1">
-                            <p className="font-medium text-2xl text-[#194A7A] ml-auto">
-                                Total Amount:{" "}
-                                <span className="font-bold">
-                                    {formatCurrency(Number(data?.total_amount || 0))}
-                                </span>
-                            </p>
-                        </section>
+                        <div className="flex justify-end">
+                            <div className="w-full divide-y">
+                                <div className="flex justify-between py-1.5 px-4">
+                                    <span className="text-[#8E8E8E]">Sub total</span>
+                                    <span>{formatCurrency(subtotal, 'NGN')}</span>
+                                </div>
+                                {/* <div className="flex justify-between py-1.5 px-4">
+                                           <span className="text-[#8E8E8E]">Tax</span>
+                                           <span>{formatCurrency(tax, 'NGN')}</span>
+                                       </div> */}
+                                <div className="flex justify-between py-1.5 px-4">
+                                    <span className="text-[#8E8E8E]">Discount</span>
+                                    <span className="text-red-500">-{formatCurrency(discount_amount || customDiscountAmount, 'NGN')}</span>
+                                </div>
+                                <div className="flex justify-between pt-1.5 pb-5 px-4">
+                                    <span className="text-[#8E8E8E]">Delivery Fee</span>
+                                    <span>{formatCurrency(deliveryFee, 'NGN')}</span>
+                                </div>
+                                <div className="flex justify-between font-semibold text-lg border-t border-t-[#31A5F9] pt-2 mt-3">
+                                    <span>Total</span>
+                                    <span>{formatCurrency(total, 'NGN')}</span>
+                                </div>
+                            </div>
+                        </div>
                     </AccordionContent>
                 </AccordionItem>
             </Accordion>
