@@ -25,9 +25,8 @@ const variationSchema = z
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message:
-          "Either stock variation ID or product inventory variation ID is required",
-        path: ["stock_variation_id", "product_inventory_variation_id"],
+        message: "A variation must be selected",
+        path: ["stock_variation_id"],
       });
     }
     return true;
@@ -64,7 +63,7 @@ const ItemSchema = z
           cost: z
             .number()
             .min(1, { message: "Miscellaneous cost is required" }),
-        })
+        }),
       )
       .optional(),
   })
@@ -86,22 +85,36 @@ const ItemSchema = z
       }
     }
     data.inventories.forEach((inventory, index) => {
-      if (inventory === null) return; // Skip validation for null inventories
+      if (!inventory) return;
+
+      const variations = inventory.variations ?? [];
 
       if ([8, 9, 10].includes(data.category)) {
-        if (inventory?.stock_inventory_id == null) {
+        // Stock categories
+
+        const hasStockSelected =
+          variations.length > 0 &&
+          variations.some((v) => v?.stock_variation_id != null);
+
+        if (!hasStockSelected) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Stock inventory ID is required for this category",
-            path: [`inventories.${index}.stock_inventory_id`],
+            message: "Stock is required",
+            path: ["inventories", index, "variations"],
           });
         }
       } else {
-        if (inventory?.product_inventory_id == null) {
+        // Product inventory categories
+
+        const hasProductSelected =
+          variations.length > 0 &&
+          variations.some((v) => v?.product_inventory_variation_id != null);
+
+        if (!hasProductSelected) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Product inventory ID is required for this category",
-            path: [`inventories.${index}.product_inventory_id`],
+            message: "Inventory is required",
+            path: ["inventories", index, "variations"],
           });
         }
       }
@@ -132,7 +145,7 @@ export const enquiryItemSchema = z
           selling_price: z
             .number()
             .min(1, { message: "Miscellaneous selling price is required" }),
-        })
+        }),
       )
       .optional(),
   })
@@ -206,7 +219,7 @@ export const NewEnquirySchema = z.object({
   delivery: z.object({
     zone: z.enum(
       ZONES_OPTIONS.map((zone) => zone.value) as [string, ...string[]],
-      { message: "Delivery zone is required" }
+      { message: "Delivery zone is required" },
     ),
     note: z.string().optional(),
     delivery_time: z.string().optional(),
