@@ -325,8 +325,13 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
                                         disabled={!watch('branch') || !watch(`items.${index}.category`) || stockInventoriesLoading || (!stockInventoriesLoading && !stockInvetories?.data.length)}
                                         isLoadingOptions={stockInventoriesLoading}
                                         isFetchingOptions={stockInventoriesFetching}
-                                        errorMessage={errors.items?.[index]?.message}
-                                        hasError={!!errors.items?.[index]}
+                                        hasError={
+                                            !!errors.items?.[index]?.inventories?.[0]?.variations
+                                        }
+                                        errorMessage={
+                                            errors.items?.[index]?.inventories?.[0]?.variations?.message
+                                        }
+
                                     />
                                     :
                                     isProductInventory ?
