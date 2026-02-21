@@ -5,6 +5,8 @@ export interface TEnquiry {
   enquiry_number: string | null;
   customer: Customer;
   created_by: Createdby;
+  discount: string | null;
+  custom_discount_amount: string | null;
   finalized_by: Createdby | null;
   converted_by: Createdby | null;
   deleted_by: Createdby | null;

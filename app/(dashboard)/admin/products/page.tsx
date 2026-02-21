@@ -651,7 +651,7 @@ const Page = () => {
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-2">
                     <SelectSingleCombo
-                      name="branch_id"
+                      name="business_id"
                       label="Business"
                       options={
                         branches?.map((branch) => ({ value: branch.id.toString(), label: branch.name })) || []

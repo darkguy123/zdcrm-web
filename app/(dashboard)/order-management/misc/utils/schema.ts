@@ -63,7 +63,7 @@ export const orderItemSchema = z
           selling_price: z
             .number()
             .min(1, { message: "Miscellaneous selling price is required" }),
-        })
+        }),
       )
       .optional(),
   })
@@ -156,9 +156,7 @@ export const NewOrderSchema = z
         .string()
         .min(1, { message: "Recipient's name is required" }),
       recipient_alternative_phone: z.string().optional(),
-      recipient_phone: z
-        .string()
-        .min(1, { message: "Recipient's phone number is required" }),
+      recipient_phone: z.string().optional(),
       fee: z.number().optional(),
       is_custom_delivery: z.boolean().optional(),
     }),
@@ -189,7 +187,7 @@ export const NewOrderSchema = z
       "not_received_paid",
     ]),
     // payment_proof: z.string().url().optional().nullable(),
-    payment_proof: z.any().nullable(),
+    payment_proof: z.any().optional().nullable(),
     payment_receipt_name: z.string().optional(),
     payment_currency: z.enum(["NGN", "USD"]),
     amount_paid_in_usd: z
@@ -203,46 +201,38 @@ export const NewOrderSchema = z
   })
   .superRefine((data, ctx) => {
     if (data.payment_options !== "not_paid_go_ahead") {
-      if (!data.payment_proof) {
-        throw z.ZodError.create([
-          {
-            path: ["payment_proof"],
-            message: "Please select a file.",
-            code: "custom",
-          },
-        ]);
-      }
-      if (!data.payment_receipt_name) {
-        throw z.ZodError.create([
-          {
-            path: ["payment_receipt_name"],
-            message: "Please enter name on receipt.",
-            code: "custom",
-          },
-        ]);
-      }
-      if (
-        !data.payment_proof.type.startsWith("application/pdf") &&
-        !data.payment_proof.type.startsWith("image/")
-      ) {
-        throw z.ZodError.create([
-          {
-            path: ["payment_proof"],
+      // Only validate proof IF user provided one
+      if (data.payment_proof) {
+        if (
+          !data.payment_proof.type.startsWith("application/pdf") &&
+          !data.payment_proof.type.startsWith("image/")
+        ) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
             message: "Please select a PDF or image file.",
-            code: "custom",
-          },
-        ]);
-      }
-      if (data.payment_proof.size > MAX_FILE_SIZE) {
-        throw z.ZodError.create([
-          {
             path: ["payment_proof"],
+          });
+        }
+
+        if (data.payment_proof.size > MAX_FILE_SIZE) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
             message: "Please select a file smaller than 10MB.",
-            code: "custom",
-          },
-        ]);
+            path: ["payment_proof"],
+          });
+        }
+      }
+
+      // Make receipt name optional too
+      if (data.payment_receipt_name && !data.payment_receipt_name.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Please enter name on receipt.",
+          path: ["payment_receipt_name"],
+        });
       }
     }
+
     if (data.delivery.method === "Dispatch") {
       if (data.delivery.is_custom_delivery) {
         if (!data.delivery.fee) {
