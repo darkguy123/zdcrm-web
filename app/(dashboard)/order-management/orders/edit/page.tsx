@@ -109,6 +109,8 @@ const NewOrderPage = () => {
 
   const { control, handleSubmit, formState: { errors }, watch, setValue, getValues, register, reset } = form;
 
+  console.log("orderData.items:", orderData)
+
   React.useEffect(() => {
     if (!isLoadingOrderData && !!orderData) {
       reset({
@@ -444,11 +446,11 @@ const NewOrderPage = () => {
                           className="border rounded-lg p-6 flex flex-col gap-4"
                         >
                           {/* Product Name */}
-                          <div className="flex justify-between">
+                          <div className="flex justify-between gap-4">
                             <p className="font-semibold text-lg text-custom-blue">
                               {item.name}
                             </p>
-                            <p className="text-sm font-medium">
+                            <p className="text-sm font-medium whitespace-pre">
                               Quantity: {item.quantity}
                             </p>
                           </div>
@@ -465,7 +467,9 @@ const NewOrderPage = () => {
                                     {meta.key?.replaceAll("_", " ")}
                                   </span>
                                   <span className="font-medium text-right">
-                                    {meta.value}
+                                    {typeof meta.value === "object"
+                                      ? JSON.stringify(meta.value)
+                                      : meta.value}
                                   </span>
                                 </div>
                               ))}
@@ -662,19 +666,20 @@ const NewOrderPage = () => {
                                   placeholder="Enter delivery fee"
                                 />
                                 :
-                                <SelectSingleCombo
-                                  label="Dispatch Location"
-                                  {...field}
-                                  value={field.value?.toString() || ''}
-                                  isLoadingOptions={dispatchLocationsLoading}
-                                  options={dispatchLocations?.data?.map(loc => ({ label: loc.location, value: loc.id.toString(), price: loc.delivery_price })) || []}
-                                  valueKey={"value"}
-                                  // labelKey={"label"}
-                                  labelKey={(item) => `${item.label} (${formatCurrency(item.price, 'NGN')})`}
-                                  placeholder="Select dispatch location"
-                                  hasError={!!errors.delivery?.dispatch}
-                                  errorMessage={errors.delivery?.dispatch?.message}
-                                />
+                                ""
+                              // <SelectSingleCombo
+                              //   label="Dispatch Location"
+                              //   {...field}
+                              //   value={field.value?.toString() || ''}
+                              //   isLoadingOptions={dispatchLocationsLoading}
+                              //   options={dispatchLocations?.data?.map(loc => ({ label: loc.location, value: loc.id.toString(), price: loc.delivery_price })) || []}
+                              //   valueKey={"value"}
+                              //   // labelKey={"label"}
+                              //   labelKey={(item) => `${item.label} (${formatCurrency(item.price, 'NGN')})`}
+                              //   placeholder="Select dispatch location"
+                              //   hasError={!!errors.delivery?.dispatch}
+                              //   errorMessage={errors.delivery?.dispatch?.message}
+                              // />
                             }
                             <button
                               className="bg-custom-blue rounded-none px-4 py-1.5 text-xs text-white"
