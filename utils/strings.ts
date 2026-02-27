@@ -4,11 +4,11 @@
  * @returns True if the value is a string or an array of strings, false otherwise.
  */
 export function isStringOrArrayOfStrings(
-  value: unknown
+  value: unknown,
 ): value is string | string[] {
   return (
-    typeof value === 'string' ||
-    (Array.isArray(value) && value.every(item => typeof item === 'string'))
+    typeof value === "string" ||
+    (Array.isArray(value) && value.every((item) => typeof item === "string"))
   );
 }
 
@@ -42,13 +42,13 @@ export function capitalizeFirstLetter(str: string) {
  */
 export function convertKebabAndSnakeToTitleCase(string: string | undefined) {
   if (!string) {
-    return '';
+    return "";
   }
 
   // Remove hyphens and underscores
   const formattedString = string
     .replace(/^[-_]*(.)/, (_, c) => c.toUpperCase())
-    .replace(/[-_]+(.)/g, (_, c) => ' ' + c.toUpperCase());
+    .replace(/[-_]+(.)/g, (_, c) => " " + c.toUpperCase());
 
   return convertToTitleCase(formattedString);
 }
@@ -58,7 +58,7 @@ export function convertKebabAndSnakeToTitleCase(string: string | undefined) {
  * @returns The intials of the user.
  */
 export const getInitials = (string: string) => {
-  const names = string.split(' ');
+  const names = string.split(" ");
   let initials = names[0].substring(0, 1).toUpperCase();
 
   if (names.length > 1) {
@@ -73,13 +73,13 @@ export const getInitials = (string: string) => {
  * @returns The acronym to represent the page name or the original page name.
  */
 export const getPageInitials = (string: string) => {
-  const names = string.split(' ');
+  const names = string.split(" ");
 
   if (names.length === 1) {
     return string;
   }
 
-  let initials = '';
+  let initials = "";
 
   for (const name of names) {
     initials += name.substring(0, 1).toUpperCase();
@@ -88,70 +88,63 @@ export const getPageInitials = (string: string) => {
   return initials;
 };
 
-
-
-
-
 export function convertPathToTitle(path: string): string {
-  const segments = path.split('/').filter(segment => segment !== '');
+  const segments = path.split("/").filter((segment) => segment !== "");
 
-  const titleSegments = segments.map(segment => {
+  const titleSegments = segments.map((segment) => {
     return segment
-      .split('-') // Split by '-' to handle hyphenated words
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1)) 
-      .join(' '); 
+      .split("-") // Split by '-' to handle hyphenated words
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
   });
 
- 
-  return titleSegments.join(' / ');
+  return titleSegments.join(" / ");
 }
 
+import { parse, format } from "date-fns";
 
-
-
-import { parse, format } from 'date-fns'
-
-export function formatTimeString(timeString: string, formatString?:string): string {
+export function formatTimeString(
+  timeString: string,
+  formatString?: string,
+): string {
   try {
     // Parse the time string into a Date object
-    const date = parse(timeString, 'HH:mm:ss', new Date())
-    
+    const date = parse(timeString, "HH:mm:ss", new Date());
+
     // Format the Date object into "hh:mmaa" format
-    return format(date, formatString || 'hh:mmaa').toLowerCase()
+    return format(date, formatString || "hh:mmaa").toLowerCase();
   } catch (error) {
-    console.error('Error formatting time:', error)
-    return 'Invalid time'
+    console.error("Error formatting time:", error);
+    return "Invalid time";
   }
 }
-
-
-
 
 export function maskString(
   input: string,
   visibleChars: number,
   useOriginalLength: boolean,
-  fixedLength?: number
+  fixedLength?: number,
 ): string {
-  if(!input) return input;
+  if (!input) return input;
   const length = input?.length;
-  const totalMaskLength = useOriginalLength ? length - 2 * visibleChars : fixedLength! - 2 * visibleChars;
-  
+  const totalMaskLength = useOriginalLength
+    ? length - 2 * visibleChars
+    : fixedLength! - 2 * visibleChars;
+
   if (totalMaskLength < 0) {
     // throw new Error("Fixed length must be greater than twice the visible character count.");
     return input;
   }
-  
+
   const mask = "*".repeat(totalMaskLength);
   return `${input.slice(0, visibleChars)}${mask}${input.slice(-visibleChars)}`;
 }
 
-
-import { format as formatDate} from 'date-fns';
+import { format as formatDate } from "date-fns";
 
 export const formatUniversalDate = (date: Date | string): string => {
-  if (typeof date === 'string') {
+  if (typeof date === "string") {
     date = new Date(date);
   }
   return formatDate(date, "EEE, do MMMM yyyy");
-}
+};
