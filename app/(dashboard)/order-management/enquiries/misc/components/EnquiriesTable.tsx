@@ -376,8 +376,8 @@ export default function EnquiriesTable({
                     </TableCell>
 
                     <TableCell className="w-max max-w-[350px] min-w-[180px]">
-                      {enquiry.message.substring(0, 50)}
-                      {enquiry.message.length > 50 && "..."}
+                      {enquiry.message?.substring(0, 50)}
+                      {enquiry.message && enquiry.message.length > 50 && "..."}
                     </TableCell>
 
                     <TableCell className="">
