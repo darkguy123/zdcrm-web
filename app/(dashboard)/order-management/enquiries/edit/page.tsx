@@ -1,12 +1,12 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import {
   Controller,
   useFieldArray,
   useForm,
 } from "react-hook-form";
-import { Money, TruckTime, Box } from "iconsax-react";
+import { Money, TruckTime, Box, Trash } from "iconsax-react";
 import { Plus, UserIcon } from "lucide-react";
 import toast from "react-hot-toast";
 import { format } from "date-fns";
@@ -31,6 +31,8 @@ import {
   TimePicker,
   Spinner,
   ConfirmActionModal,
+  AmountInput,
+  Textarea,
 } from "@/components/ui";
 import {
   DISPATCH_METHOD_OPTIONS,
@@ -54,6 +56,8 @@ import { formatTimeString } from "@/utils/strings";
 import Link from "next/link";
 import { useGetAllBranches } from "@/app/(dashboard)/admin/businesses/misc/api";
 import SelectSingleSimple from "@/components/ui/selectSingleSimple";
+import { useGetAllDiscounts } from "@/app/(dashboard)/admin/discount/misc/api";
+import { useGetAllBusiness } from "@/mutations/business.mutation";
 
 
 const NewEnquiryPage = () => {
@@ -61,9 +65,12 @@ const NewEnquiryPage = () => {
 
   const { data: enquiryData, isLoading: isLoadingEnquiryData } = useGetEnquiryDetail(enquiry_id ?? '')
   const { data: branches, isLoading: branchesLoading } = useGetAllBranches();
+  const { data: businesses, isLoading: businessesLoading } = useGetAllBusiness();
   const { data: categories, isLoading: categoriesLoading } = useGetCategories();
   const { data: products, isLoading: productsLoading } = useGetProducts();
   const { data: dispatchLocations, isLoading: dispatchLocationsLoading } = useGeTOrderDeliveryLocations();
+  const { data: discounts, isLoading: isLoadingDiscounts } = useGetAllDiscounts();
+  const [isCustomDiscount, setIsCustomDiscount] = useState(false)
 
   const form = useForm<NewEnquiryFormValues>({
     resolver: zodResolver(NewEnquirySchema),
@@ -376,13 +383,22 @@ const NewEnquiryPage = () => {
                       name="branch"
                       control={control}
                       render={({ field }) => (
-                        <SelectBranchCombo
-                          name="branch"
-                          value={field.value?.toString() || ''}
+                        <SelectSingleCombo
+                          name="branch" // ✅ REQUIRED — fixes the type error
+                          label="Business"
+                          value={field.value?.toString() || ""}
                           onChange={(val) => field.onChange(Number(val))}
+                          options={
+                            businesses?.map((b) => ({
+                              label: b.name,
+                              value: b.id.toString(),
+                            })) || []
+                          }
+                          valueKey="value"
+                          labelKey="label"
                           className="!h-10 min-w-40"
-                          placeholder="Select Branch"
-                          isLoadingOptions={branchesLoading}
+                          placeholder="Select Business"
+                          isLoadingOptions={businessesLoading}
                           hasError={!!errors.branch}
                           errorMessage={errors.branch?.message}
                           variant="inputButton"
@@ -723,6 +739,93 @@ const NewEnquiryPage = () => {
                   {...register("message")}
                   optional
                 />
+              </AccordionContent>
+            </AccordionItem>
+
+
+
+            {/* /////////////////////////////////////////////////////////////////////////////// */}
+            {/* /////////////////////////////////////////////////////////////////////////////// */}
+            {/* /////////////                  Discount section                  ////////////// */}
+            {/* /////////////////////////////////////////////////////////////////////////////// */}
+            {/* /////////////////////////////////////////////////////////////////////////////// */}
+            <AccordionItem value="Discount-information">
+              <AccordionTrigger className="py-4">
+                <div className="flex items-center gap-5">
+                  <div className="h-10 w-10 flex items-center justify-center bg-custom-white rounded-full">
+                    <Image src="/img/book.svg" alt="" width={24} height={24} />
+                  </div>
+                  <p className="text-custom-blue font-medium">
+                    Discount (optional)
+                  </p>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pt-8 pb-14">
+                <div>
+                  <div className="flex gap-4 items-center ">
+                    {
+                      !isCustomDiscount &&
+                      <SelectSingleCombo
+                        name='discount_id'
+                        className='max-w-[350px]'
+                        value={watch('discount_id')?.toString() || ''}
+                        onChange={(value) => setValue('discount_id', Number(value))}
+                        label='Discount Type'
+                        labelKey={(item) => `${item.label} - ${formatCurrency(Number(item.amount), 'NGN')}`}
+                        valueKey={'value'}
+                        placeholder='Select discount type'
+                        options={discounts?.data?.map((discount) => ({
+                          label: discount.type,
+                          value: discount.id.toString(),
+                          amount: discount.amount
+                        })) || []}
+                        isLoadingOptions={isLoadingDiscounts}
+                      />
+                    }
+
+
+                    <Button
+                      onClick={() => setIsCustomDiscount((prev) => !prev)}
+                      className="mt-6 !h-12"
+                      type="button"
+                    >
+                      {
+                        isCustomDiscount ?
+                          "Use Regular Discounts" :
+                          "Enter Custom Amount"
+                      }
+                    </Button>
+                  </div>
+
+                  {
+                    isCustomDiscount &&
+                    <div className="space-y-5">
+                      <AmountInput
+                        label="Discount Amount"
+                        className='max-w-[350px]'
+                        hasError={!!errors.custom_discount_amount}
+                        errorMessage={errors.custom_discount_amount?.message}
+                        placeholder="Enter discount amount"
+                        {...register('custom_discount_amount')}
+                      />
+                      <Textarea
+                        className='max-w-[350px]'
+                        placeholder='Enter discount reason'
+                        label="Discount Reason"
+                      // {...register('custom_discount_reason')}
+                      />
+                    </div>
+                  }
+                  <Button
+                    type="button"
+                    className='flex items-center gap-1 mt-4 text-[#d8636d] bg-red-100'
+                    onClick={() => setValue('discount_id', undefined)}
+                  >
+                    <Trash className='w-5 h-5 text-[#d8636d]' />
+
+                    Remove discount
+                  </Button>
+                </div>
               </AccordionContent>
             </AccordionItem>
 
