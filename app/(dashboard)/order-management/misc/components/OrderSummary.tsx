@@ -419,8 +419,7 @@ export default function OrderSummary() {
                   <p className='font-medium mt-2 text-red-500'>Discount: -{formatCurrency(Number(order?.discount?.amount) || 0, "NGN")}</p>
                   {/* <p className='font-medium mt-2 text-red-500'>Discount: -{formatCurrency(Number(watch('custom_discount_amount') || selectedDiscountAmount) || 0, "NGN")}</p> */}
                   <p className='text-xl font-bold mt-6'>
-                    Total (NGN):
-                    {
+                    Total (NGN): {
                       formatCurrency(
                         Number(order?.total_amount) -
                         (watch('custom_discount_amount') || (Number(discounts?.data.find((discount) => discount.id.toString() == watch('discount_id'))?.amount) || 0)),

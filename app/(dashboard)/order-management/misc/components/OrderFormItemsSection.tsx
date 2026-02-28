@@ -49,7 +49,7 @@ const OrderItemsSection: React.FC<OrderItemsSectionProps> = ({
   const { data: categories, isLoading: categoriesLoading } = useGetCategories();
   const { data: products, isLoading: productsLoading, isFetching: productsFetching } = useGetProducts({
     category: watch(`items.${index}.category`),
-    business: watch(`branch`)
+    business: watch(`business`),
   });
 
   const { data: propertyOptions, isLoading: isLoadingPropertyOptions } = useGetPropertyOptions()
@@ -80,7 +80,7 @@ const OrderItemsSection: React.FC<OrderItemsSectionProps> = ({
     page: 1,
     size: 20000000000000,
     category: Number(watchedItems[index]?.category),
-    business: watch('branch'),
+    business: watch('business'),
   });
 
   const { data: stockInvetories, isLoading: stockInventoriesLoading, isFetching: stockInventoriesFetching, error: stockError, refetch: refetchStockInventory } = useGetStockInventory({
@@ -237,8 +237,8 @@ const OrderItemsSection: React.FC<OrderItemsSectionProps> = ({
                       isLoadingOptions={categoriesLoading}
                       hasError={!!errors.items?.[index]?.category}
                       errorMessage={errors.items?.[index]?.category?.message}
-                      placeholder={!watch('branch') ? 'Select branch first' : 'Select category'}
-                      disabled={!watch('branch')}
+                      placeholder={!watch('business') ? 'Select business first' : 'Select category'}
+                      disabled={!watch('business')}
                     />
                   )}
                 />
@@ -252,7 +252,7 @@ const OrderItemsSection: React.FC<OrderItemsSectionProps> = ({
                     <ProductSelector
                       {...field}
                       category={categoryName}
-                      branch={watch('branch')}
+                      branch={watch('business')}
                       productId={field.value?.toString() || ''}
                       variationId={watch(`items.${index}.product_variation_id`) || ''}
                       setProductId={(value) => {
@@ -294,7 +294,7 @@ const OrderItemsSection: React.FC<OrderItemsSectionProps> = ({
                       )
                     }
                     options={stockInvetories?.data!}
-                    disabled={!watch('branch') || !watch(`items.${index}.category`) || stockInventoriesLoading || (!stockInventoriesLoading && !stockInvetories?.data.length)}
+                    disabled={!watch('business') || !watch(`items.${index}.category`) || stockInventoriesLoading || (!stockInventoriesLoading && !stockInvetories?.data.length)}
                     isLoadingOptions={stockInventoriesLoading}
                     isFetchingOptions={stockInventoriesFetching}
                     hasError={
@@ -316,7 +316,7 @@ const OrderItemsSection: React.FC<OrderItemsSectionProps> = ({
                         )
                       }
                       options={productsInvetories?.data!}
-                      disabled={!watch('branch') || !watch(`items.${index}.category`) || productInventoriesLoading || (!productInventoriesLoading && !productsInvetories?.data.length)}
+                      disabled={!watch('business') || !watch(`items.${index}.category`) || productInventoriesLoading || (!productInventoriesLoading && !productsInvetories?.data.length)}
                       isLoadingOptions={productInventoriesLoading}
                       isFetchingOptions={productInventoriesFetching}
                       errorMessage={errors.items?.[index]?.inventories?.message}

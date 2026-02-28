@@ -70,7 +70,7 @@ const NewOrderPage = () => {
   const form = useForm<NewOrderFormValues>({
     resolver: zodResolver(NewOrderSchema),
     defaultValues: {
-      branch: branches?.data?.[0].id,
+      business: branches?.data?.[0].id,
       customer: {
         name: "",
         phone: "",
@@ -421,11 +421,11 @@ const NewOrderPage = () => {
                 <section className="flex items-center justify-between gap-10">
                   {!!watch("items") && !!watch("items")?.length && (
                     <Controller
-                      name="branch"
+                      name="business"
                       control={control}
                       render={({ field }) => (
                         <SelectSingleCombo
-                          name="branch" // ✅ REQUIRED — fixes the type error
+                          name="business" // ✅ REQUIRED — fixes the type error
                           label="Business"
                           value={field.value?.toString() || ""}
                           onChange={(val) => field.onChange(Number(val))}
@@ -440,8 +440,8 @@ const NewOrderPage = () => {
                           className="!h-10 min-w-40"
                           placeholder="Select Business"
                           isLoadingOptions={businessesLoading}
-                          hasError={!!errors.branch}
-                          errorMessage={errors.branch?.message}
+                          hasError={!!errors.business}
+                          errorMessage={errors.business?.message}
                           variant="inputButton"
                         />
                       )}

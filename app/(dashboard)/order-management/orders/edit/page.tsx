@@ -78,7 +78,7 @@ const NewOrderPage = () => {
   const form = useForm<NewOrderFormValues>({
     resolver: zodResolver(NewOrderSchema),
     defaultValues: {
-      branch: branches?.data?.[0].id,
+      business: branches?.data?.[0].id,
       customer: { name: "", phone: "", email: "" },
       delivery: {
         zone: "LM",
@@ -109,8 +109,6 @@ const NewOrderPage = () => {
 
   const { control, handleSubmit, formState: { errors }, watch, setValue, getValues, register, reset } = form;
 
-  console.log("orderData.items:", orderData)
-
   React.useEffect(() => {
     if (!isLoadingOrderData && !!orderData) {
       reset({
@@ -122,7 +120,7 @@ const NewOrderPage = () => {
         enquiry_channel: orderData.enquiry_channel,
         enquiry_occasion: orderData.enquiry_occasion,
         // social_media_details: orderData.social_media_details,
-        branch: orderData?.branch?.id,
+        business: orderData?.branch?.id,
         delivery: {
           zone: (orderData.delivery?.zone as "LM" | "LC" | "LI" | "OT" | "ND") ?? "LM",
           method: orderData.delivery?.method as "Dispatch" | "Pickup",
@@ -516,11 +514,11 @@ const NewOrderPage = () => {
                   {
                     (!!watch('items') && !!watch('items')?.length) &&
                     <Controller
-                      name="branch"
+                      name="business"
                       control={control}
                       render={({ field }) => (
                         <SelectSingleCombo
-                          name="branch" // ✅ REQUIRED — fixes the type error
+                          name="business" // ✅ REQUIRED — fixes the type error
                           label="Business"
                           value={field.value?.toString() || ""}
                           onChange={(val) => field.onChange(Number(val))}
@@ -535,8 +533,8 @@ const NewOrderPage = () => {
                           className="!h-10 min-w-40"
                           placeholder="Select Business"
                           isLoadingOptions={businessesLoading}
-                          hasError={!!errors.branch}
-                          errorMessage={errors.branch?.message}
+                          hasError={!!errors.business}
+                          errorMessage={errors.business?.message}
                           variant="inputButton"
                         />
                       )}
@@ -666,20 +664,19 @@ const NewOrderPage = () => {
                                   placeholder="Enter delivery fee"
                                 />
                                 :
-                                ""
-                              // <SelectSingleCombo
-                              //   label="Dispatch Location"
-                              //   {...field}
-                              //   value={field.value?.toString() || ''}
-                              //   isLoadingOptions={dispatchLocationsLoading}
-                              //   options={dispatchLocations?.data?.map(loc => ({ label: loc.location, value: loc.id.toString(), price: loc.delivery_price })) || []}
-                              //   valueKey={"value"}
-                              //   // labelKey={"label"}
-                              //   labelKey={(item) => `${item.label} (${formatCurrency(item.price, 'NGN')})`}
-                              //   placeholder="Select dispatch location"
-                              //   hasError={!!errors.delivery?.dispatch}
-                              //   errorMessage={errors.delivery?.dispatch?.message}
-                              // />
+                                <SelectSingleCombo
+                                  label="Dispatch Location"
+                                  {...field}
+                                  value={field.value?.toString() || ''}
+                                  isLoadingOptions={dispatchLocationsLoading}
+                                  options={dispatchLocations?.data?.map(loc => ({ label: loc.location, value: loc.id.toString(), price: loc.delivery_price })) || []}
+                                  valueKey={"value"}
+                                  // labelKey={"label"}
+                                  labelKey={(item) => `${item.label} (${formatCurrency(item.price, 'NGN')})`}
+                                  placeholder="Select dispatch location"
+                                  hasError={!!errors.delivery?.dispatch}
+                                  errorMessage={errors.delivery?.dispatch?.message}
+                                />
                             }
                             <button
                               className="bg-custom-blue rounded-none px-4 py-1.5 text-xs text-white"

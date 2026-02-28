@@ -167,7 +167,7 @@ export const NewOrderSchema = z
       .min(1, { message: "Enquiry channel is required" }),
     social_media_details: z.string().optional(),
     enquiry_occasion: z.string().optional(),
-    branch: z.number({ message: "Select a branch" }),
+    business: z.number({ message: "Select a branch" }),
     message: z.string().optional(),
     items: z
       .array(orderItemSchema)
