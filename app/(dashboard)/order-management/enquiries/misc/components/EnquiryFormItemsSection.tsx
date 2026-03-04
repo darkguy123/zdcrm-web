@@ -61,7 +61,7 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
     const { data: propertyOptions, isLoading: isLoadingPropertyOptions } = useGetPropertyOptions()
     const { data: products, isLoading: productsLoading, isFetching: productsFetching } = useGetProducts({
         category: watch(`items.${index}.category`),
-        business: watch('branch'),
+        business: watch('business'),
     });
 
     const { remove: deleteItems } = useFieldArray({
@@ -74,7 +74,7 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
         name: `items.${index}.inventories`
     });
 
-    const selectedBranch = watch('branch'); // NOTE: this is your "business_id" value in practice
+    const selectedBranch = watch('business'); // NOTE: this is your "business_id" value in practice
     const selectedCategory = watch(`items.${index}.category`);
 
     const categoryName = categories?.find(cat => cat.id === Number(selectedCategory))?.name || '';
@@ -92,7 +92,7 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
         page: 1,
         size: 20000000000000,
         category: Number(watchedItems?.[index]?.category),
-        business: watch('branch'),
+        business: watch('business'),
     });
 
     const { data: stockInvetories, isLoading: stockInventoriesLoading, isFetching: stockInventoriesFetching, error: stockError, refetch: refetchStockInventory } = useGetStockInventory({
@@ -141,11 +141,13 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
 
         const selectedProduct = products?.find(product => product.id === item.product_id);
         if (!item.category || !selectedProduct) {
-            return ((0 + propertiesCost) * item.quantity) + miscCost;
+            const qty = item.quantity ?? 0;
+            return ((0 + propertiesCost) * qty) + miscCost;
         }
         else {
+            const qty = item.quantity ?? 0;
             const initialCostPrice = Number(selectedProduct?.variations?.find(variation => variation.id.toString() === item.product_variation_id)?.selling_price) || 0;
-            return ((initialCostPrice + propertiesCost) * item.quantity) + miscCost;
+            return ((initialCostPrice + propertiesCost) * qty) + miscCost;
         }
     }, [propertyOptions?.data, products]);
 
@@ -262,8 +264,8 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
                                             hasError={!!errors.items?.[index]?.category}
                                             errorMessage={errors.items?.[index]?.category?.message}
                                             // ✅ text change only (branch is actually business)
-                                            placeholder={!watch('branch') ? 'Select business first' : 'Select category'}
-                                            disabled={!watch('branch')}
+                                            placeholder={!watch('business') ? 'Select business first' : 'Select category'}
+                                            disabled={!watch('business')}
                                         />
                                     )}
                                 />
@@ -279,7 +281,7 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
                                             // ✅ FIX: remount when category changes so UI resets properly
                                             key={`product-${index}-${selectedCategory || 'none'}`}
                                             category={categoryName}
-                                            branch={watch('branch')}
+                                            branch={watch('business')}
                                             productId={field.value?.toString() || ''}
                                             variationId={watch(`items.${index}.product_variation_id`) || ''}
                                             setProductId={(value) => { setValue(`items.${index}.product_id`, Number(value), { shouldDirty: true, shouldTouch: true }); }}
@@ -322,7 +324,7 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
                                             )
                                         }
                                         options={stockInvetories?.data!}
-                                        disabled={!watch('branch') || !watch(`items.${index}.category`) || stockInventoriesLoading || (!stockInventoriesLoading && !stockInvetories?.data.length)}
+                                        disabled={!watch('business') || !watch(`items.${index}.category`) || stockInventoriesLoading || (!stockInventoriesLoading && !stockInvetories?.data.length)}
                                         isLoadingOptions={stockInventoriesLoading}
                                         isFetchingOptions={stockInventoriesFetching}
                                         hasError={
@@ -347,7 +349,7 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
                                                 )
                                             }
                                             options={productsInvetories?.data!}
-                                            disabled={!watch('branch') || !watch(`items.${index}.category`) || productInventoriesLoading || (!productInventoriesLoading && !productsInvetories?.data.length)}
+                                            disabled={!watch('business') || !watch(`items.${index}.category`) || productInventoriesLoading || (!productInventoriesLoading && !productsInvetories?.data.length)}
                                             isLoadingOptions={productInventoriesLoading}
                                             isFetchingOptions={productInventoriesFetching}
                                             errorMessage={errors.items?.[index]?.inventories?.message}

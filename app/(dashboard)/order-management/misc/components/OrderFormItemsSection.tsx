@@ -350,6 +350,7 @@ const OrderItemsSection: React.FC<OrderItemsSectionProps> = ({
                                 allowDisselect
                                 hasError={!!errors.items?.[index]?.properties?.toppings}
                                 errorMessage={errors.items?.[index]?.properties?.toppings?.message as string}
+
                               />
                             )}
                           />

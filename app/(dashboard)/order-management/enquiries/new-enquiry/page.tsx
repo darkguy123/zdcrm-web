@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import {
   Controller,
@@ -80,7 +80,7 @@ const NewEnquiryPage = () => {
   const form = useForm<NewEnquiryFormValues>({
     resolver: zodResolver(NewEnquirySchema),
     defaultValues: {
-      branch: branches?.data?.[0].id,
+      business: branches?.data?.[0].id,
       customer: {
         name: "", phone: "",
         alternative_phone: "",
@@ -108,18 +108,7 @@ const NewEnquiryPage = () => {
       custom_discount_amount: undefined,
       enquiry_channel: "",
       enquiry_occasion: "",
-      items: [
-        // {
-        //   category: categories?.[0].id,
-        //   product_id: products?.[0].id,
-        //   product_variation_id: '',
-        //   quantity: 1,
-        //   properties: {},
-        //   inventories: [{
-        //     variations: [],
-        //   }],
-        // }
-      ],
+      items: undefined,
     }
   });
 
@@ -132,16 +121,20 @@ const NewEnquiryPage = () => {
 
   const addNewItem = () => {
     append({
-      category: categories?.[0].id || 1,
-      product_id: products?.[0].id || 0,
+      category: undefined,
+      product_id: undefined,
       product_variation_id: '',
-      quantity: 1,
+      quantity: undefined,
       properties: {},
       inventories: [{
         variations: [],
       }],
     });
   };
+
+  useEffect(() => {
+    console.log(form.formState.errors)
+  }, [form.formState.errors])
 
   const router = useRouter();
   const {
@@ -153,39 +146,48 @@ const NewEnquiryPage = () => {
   const { mutate, isPending } = useCreateEnquiry()
   const { uploadToCloudinary } = useCloudinary()
   const [createdEnquiry, setCreatedEnquiry] = React.useState<string | number | null>(null);
-  const onSubmit = async (data: NewEnquiryFormValues) => {
+ const onSubmit = async (data: NewEnquiryFormValues) => {
 
-    console.log("first")
-    const processedItems = !!data.items ? await Promise.all(
-      data.items.map(async (item) => {
-        let custom_image: string | undefined
-        if (item.custom_image) {
-          const uploadResult = await uploadToCloudinary(item.custom_image)
-          custom_image = uploadResult.secure_url
-        }
-        return {
-          ...item,
-          custom_image,
-        }
-      })
-    ) : [];
-    const dataToSubmit = {
-      ...data,
-      items: processedItems,
-    }
+  const cleanedItems = (data.items || []).filter(
+    (item) => item.category || item.product_id || item.product_variation_id
+  )
 
-    mutate(dataToSubmit, {
-      onSuccess(data) {
-        toast.success("Enquiry created successfully");
-        openSuccessModal();
-        setCreatedEnquiry(data?.data?.id);
-      },
-      onError(error: unknown) {
-        const errMessage = extractErrorMessage((error as any)?.response?.data as any);
-        toast.error(errMessage, { duration: 7500 });
+  const processedItems = await Promise.all(
+    cleanedItems.map(async (item) => {
+      let custom_image: string | undefined
+
+      if (item.custom_image) {
+        const uploadResult = await uploadToCloudinary(item.custom_image)
+        custom_image = uploadResult.secure_url
+      }
+
+      return {
+        ...item,
+        custom_image,
       }
     })
-  };
+  )
+
+  // remove items from original form data
+  const { items, ...rest } = data
+
+  const dataToSubmit = {
+    ...rest,
+    ...(processedItems.length ? { items: processedItems } : {}),
+  }
+
+  mutate(dataToSubmit, {
+    onSuccess(data) {
+      toast.success("Enquiry created successfully")
+      openSuccessModal()
+      setCreatedEnquiry(data?.data?.id)
+    },
+    onError(error: unknown) {
+      const errMessage = extractErrorMessage((error as any)?.response?.data as any)
+      toast.error(errMessage, { duration: 7500 })
+    }
+  })
+}
 
   const routeToEnquiryDetails = () => {
     router.push(`/order-management/enquiries/${createdEnquiry}`);
@@ -389,11 +391,11 @@ const NewEnquiryPage = () => {
                   {
                     (!!watch('items') && !!watch('items')?.length) &&
                     <Controller
-                      name="branch"
+                      name="business"
                       control={control}
                       render={({ field }) => (
                         <SelectSingleCombo
-                          name="branch" // ✅ REQUIRED — fixes the type error
+                          name="business" // ✅ REQUIRED — fixes the type error
                           label="Business"
                           value={field.value?.toString() || ""}
                           onChange={(val) => field.onChange(Number(val))}
@@ -408,8 +410,8 @@ const NewEnquiryPage = () => {
                           className="!h-10 min-w-40"
                           placeholder="Select Business"
                           isLoadingOptions={businessesLoading}
-                          hasError={!!errors.branch}
-                          errorMessage={errors.branch?.message}
+                          hasError={!!errors.business}
+                          errorMessage={errors.business?.message}
                           variant="inputButton"
                         />
                       )}

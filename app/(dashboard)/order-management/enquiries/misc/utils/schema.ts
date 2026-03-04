@@ -46,12 +46,13 @@ const inventorySchema = z
 
 const ItemSchema = z
   .object({
-    category: z.number({ message: "Category is required" }),
-    product_id: z.number({ message: "Product Name is required" }),
+    category: z.number({ message: "Category is required" }).optional(),
+    product_id: z.number({ message: "Product Name is required" }).optional(),
     product_variation_id: z
       .string()
-      .min(1, { message: "Product Variation is required" }),
-    quantity: z.number().min(1),
+      .min(1, { message: "Product Variation is required" })
+      .optional(),
+    quantity: z.number().min(1).optional(),
     inventories: z.array(inventorySchema),
     properties: propertiesSchema,
     miscellaneous: z
@@ -89,7 +90,7 @@ const ItemSchema = z
 
       const variations = inventory.variations ?? [];
 
-      if ([8, 9, 10].includes(data.category)) {
+      if (data.category && [8, 9, 10].includes(data.category)) {
         // Stock categories
 
         const hasStockSelected =
@@ -123,12 +124,15 @@ const ItemSchema = z
 
 export const enquiryItemSchema = z
   .object({
-    category: z.number({ message: "Category is required" }),
-    product_id: z.number({ message: "Product Name is required" }),
+    category: z.number({ message: "Category is required" }).optional(),
+    product_id: z.number({ message: "Product Name is required" }).optional(),
+
     product_variation_id: z
       .string()
-      .min(1, { message: "Product Variation is required" }),
-    quantity: z.number().min(1),
+      .optional()
+      .transform((val) => (val === "" ? undefined : val)),
+
+    quantity: z.number().min(1).optional(),
     inventories: z.array(inventorySchema),
     properties: propertiesSchema,
     custom_image: z.any().nullable(),
@@ -170,6 +174,8 @@ export const enquiryItemSchema = z
         ]);
       }
     }
+
+    if (!data.product_id) return;
     if (data.product_id && data.product_id == 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -189,7 +195,7 @@ export const enquiryItemSchema = z
     data.inventories.forEach((inventory, index) => {
       if (inventory === null) return; // Skip validation for null inventories
 
-      if ([8, 9, 10].includes(data.category)) {
+      if (data.category && [8, 9, 10].includes(data.category)) {
         if (inventory?.stock_inventory_id == null) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
@@ -233,7 +239,9 @@ export const NewEnquirySchema = z.object({
       .optional(),
     dispatch: z.string().optional(),
     address: z.string().optional(),
-    recipient_name: z.string().optional(),
+    recipient_name: z
+      .string()
+      .min(1, { message: "Recipient's name is required" }),
     recipient_phone: z.string().optional(),
     recipient_alternative_phone: z.string().optional(),
     fee: z.number().optional(),
@@ -242,9 +250,9 @@ export const NewEnquirySchema = z.object({
   enquiry_channel: z.string().optional(),
   social_media_details: z.string().optional(),
   enquiry_occasion: z.string().optional(),
-  branch: z.number({ message: "Select a branch" }).optional(),
+  business: z.number({ message: "Select a business" }),
   message: z.string().optional(),
-  items: z.array(enquiryItemSchema).optional(),
+  items: z.array(enquiryItemSchema).optional().nullable(),
   discount_id: z.number().optional(),
   custom_discount_amount: z.number().optional(),
 });
@@ -282,7 +290,7 @@ export const ConvertiblEnquirySchema = z
       .min(1, { message: "Enquiry channel is required" }),
     social_media_details: z.string().optional(),
     enquiry_occasion: z.string().optional(),
-    branch: z.number({ message: "Select a branch" }),
+    business: z.number({ message: "Select a business" }),
     message: z.string().optional(),
     items: z
       .array(ItemSchema)
