@@ -101,7 +101,7 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
         page: 1,
         size: 20000000000000,
         category: Number(watchedItems[index]?.category),
-        business: watch('branch'),
+        business: watch('business'),
     });
 
     const { data: stockInvetories, isLoading: stockLoading, isFetching: stockFetching, error: stockError, refetch: refetchStockInventory } = useGetStockInventory({
@@ -146,7 +146,7 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
             stock_inventory_id: product.id,
             product_image: product.image_one,
             name: product.name,
-            variation: variation.size ||  variation.flavour,
+            variation: variation.size || variation.flavour,
             category: product.category.name,
         }))
     ) || [];
@@ -167,6 +167,7 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
                 return 0;
             } else {
                 const itemInventories = inventories.filter(inv => inventoriesIds.includes(inv.id));
+                const qty = item.quantity ?? 0;
 
                 const selectedVariations = items?.map(item => item.inventories.map(inv => inv?.variations?.map(variation => {
                     const selected = itemInventories.flatMap(inv =>
@@ -182,7 +183,7 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
                     return acc + (Number(variation?.cost_price || '0') * (variation?.quantity || 1));
                 }, 0);
 
-                return (totalVariationCost * item.quantity) + miscCost;
+                return (totalVariationCost * qty) + miscCost;
             }
         }
     }, [watchedItemAtIndex]);
