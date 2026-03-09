@@ -49,29 +49,29 @@ export const paymentFormSchema = z.object({
   payment_currency: z.enum(["NGN", "USD"]),
   amount_paid_in_usd: z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
   initial_amount_paid: z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
-  payment_proof: z.any().nullable().refine(
-    file => {
-      if (!file) {
-        throw z.ZodError.create([{
-          path: ['payment_proof'],
-          message: 'Please select a file.',
-          code: 'custom',
-        }]);
-      }
-      if (!file.type.startsWith('application/pdf') && !file.type.startsWith('image/')) {
-        throw z.ZodError.create([{
-          path: ['payment_proof'],
-          message: 'Please select a PDF or image file.',
-          code: 'custom',
-        }]);
-      }
-      return file.size <= MAX_FILE_SIZE;
-    },
+  payment_proof: z
+    .any()
+    .optional()
+    .nullable()
+    .refine(
+      (file) => {
+        if (!file) return true; // allow empty
 
-    {
-      message: 'Max file size is 10MB.',
-    }
-  ),
+        const validType =
+          file.type?.startsWith("application/pdf") ||
+          file.type?.startsWith("image/");
+
+        return validType;
+      },
+      { message: "Please select a PDF or image file." }
+    )
+    .refine(
+      (file) => {
+        if (!file) return true; // allow empty
+        return file.size <= MAX_FILE_SIZE;
+      },
+      { message: "Max file size is 10MB." }
+    ),
 }).superRefine((data, ctx) => {
   if ((data.payment_options === "part_payment_cash" || data.payment_options === "part_payment_transfer") && !data.initial_amount_paid) {
     ctx.addIssue({
@@ -184,7 +184,7 @@ const ConfirmPaymentModal: React.FC<ConfirmPaymentModalProps> = React.memo(({
     <Dialog open={isModalOpen}>
       <DialogContent
         onPointerDownOutside={closeModal}
-        className="p-0 !rounded-2xl sm:max-w-[465px]"
+        className="p-0 !rounded-2xl sm:max-w-[465px] overflow-y-auto"
       >
         <div className="border-b border-[#E6E6E6] p-6 xl:p-8 !pb-4 xl:pb-5">
           <DialogTitle>Confirm Payment</DialogTitle>
