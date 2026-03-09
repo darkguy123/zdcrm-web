@@ -176,8 +176,8 @@ const EnquiryFormItemsSection: React.FC<EnquiryFormItemsSectionProps> = ({
                     return { id: variation.stock_variation_id, quantity: variation.quantity, cost_price: selected?.[0]?.selling_price || 0 };
                 }))).flat(2);
 
-                console.log("selectedVariations", selectedVariations);
-                console.log("form items", item);
+                // console.log("selectedVariations", selectedVariations);
+                // console.log("form items", item);
 
                 const totalVariationCost = selectedVariations.reduce((acc, variation) => {
                     return acc + (Number(variation?.cost_price || '0') * (variation?.quantity || 1));
