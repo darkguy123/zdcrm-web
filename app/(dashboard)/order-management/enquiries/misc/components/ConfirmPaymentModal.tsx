@@ -152,7 +152,7 @@ const ConfirmPaymentModal: React.FC<ConfirmPaymentModalProps> = React.memo(({
       onSuccess: (data) => {
         closeModal()
         toast.success('Payment Confirmed')
-        router.push(`/order-management/orders/${data.data.id}/order-summary`)
+        router.push(`/order-management/orders/${data?.data?.order_id}/order-summary`)
       },
       onError: (error) => {
         const errorMessage = extractErrorMessage((error as any).response?.data)
