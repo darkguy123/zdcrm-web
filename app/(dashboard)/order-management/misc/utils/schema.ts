@@ -10,6 +10,23 @@ const propertiesSchema = z
   })
   .optional();
 
+// const variationSchema = z
+//   .object({
+//     stock_variation_id: z.number().optional(),
+//     product_inventory_variation_id: z.number().optional(),
+//     quantity: z.number().min(1),
+//   })
+//   .superRefine((data, ctx) => {
+//     if (!data.stock_variation_id && !data.product_inventory_variation_id) {
+//       ctx.addIssue({
+//         code: z.ZodIssueCode.custom,
+//         message:
+//           "Either stock variation ID or product inventory variation ID is required",
+//         path: ["stock_variation_id", "product_inventory_variation_id"],
+//       });
+//     }
+//     return true;
+//   });
 const variationSchema = z
   .object({
     stock_variation_id: z.number().optional(),
@@ -17,12 +34,14 @@ const variationSchema = z
     quantity: z.number().min(1),
   })
   .superRefine((data, ctx) => {
-    if (!data.stock_variation_id && !data.product_inventory_variation_id) {
+    if (
+      data.stock_variation_id == null &&
+      data.product_inventory_variation_id == null
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message:
-          "Either stock variation ID or product inventory variation ID is required",
-        path: ["stock_variation_id", "product_inventory_variation_id"],
+        message: "A variation must be selected",
+        path: ["stock_variation_id"],
       });
     }
     return true;
@@ -167,7 +186,7 @@ export const NewOrderSchema = z
       .min(1, { message: "Enquiry channel is required" }),
     social_media_details: z.string().optional(),
     enquiry_occasion: z.string().optional(),
-    business: z.number({ message: "Select a branch" }),
+    business: z.number({ message: "Select a business" }),
     message: z.string().optional(),
     items: z
       .array(orderItemSchema)

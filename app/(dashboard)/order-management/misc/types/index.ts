@@ -2,6 +2,7 @@ import { TProductCategory } from "@/app/(dashboard)/inventory/misc/types";
 
 export interface TOrder {
   id: number;
+  order_id: number;
   customer: Customer;
   created_by: Createdby;
   approved_by: Createdby | null;
