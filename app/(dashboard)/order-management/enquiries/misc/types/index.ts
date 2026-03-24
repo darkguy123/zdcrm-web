@@ -13,9 +13,12 @@ export interface TEnquiry {
   enquiry_channel: string;
   social_media_details: string;
   enquiry_occasion: string;
+  business: business;
   branch: Branch;
   message: string;
   status: string;
+  is_external_order: boolean;
+  metadata: WebsiteMetadata;
   payment_status: string;
   payment_options: string;
   payment_currency: string;
@@ -29,6 +32,37 @@ export interface TEnquiry {
   delivery: Delivery;
   items: Item[];
   discussions: TEnquiryDiscussion[];
+  create_date: string;
+  update_date: string;
+}
+
+export interface WebsiteMetaDataItem {
+  id: number;
+  key: string;
+  value: string;
+}
+
+export interface WebsiteLineItem {
+  id: number;
+  name: string;
+  product_id: number;
+  quantity: number;
+  subtotal: string;
+  total: string;
+  meta_data: WebsiteMetaDataItem[];
+}
+
+export interface WebsiteMetadata {
+  line_items: WebsiteLineItem[];
+}
+
+export interface business {
+  id: number;
+  name: string;
+  phone_number: string;
+  address: string;
+  country: string;
+  country_display: string;
   create_date: string;
   update_date: string;
 }

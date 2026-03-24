@@ -191,7 +191,7 @@ export const NewOrderSchema = z
     items: z
       .array(orderItemSchema)
       .min(1, { message: "At least one item is required" }),
-    payment_status: z.enum(["UP", "FP", "PP"]),
+    payment_status: z.enum(["UP", "FP", "PP"]).optional(),
     payment_options: z.enum([
       "not_paid_go_ahead",
       "paid_website_card",
