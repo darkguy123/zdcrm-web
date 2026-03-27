@@ -239,9 +239,7 @@ export const NewEnquirySchema = z.object({
       .optional(),
     dispatch: z.string().optional(),
     address: z.string().optional(),
-    recipient_name: z
-      .string()
-      .min(1, { message: "Recipient's name is required" }),
+    recipient_name: z.string().optional(),
     recipient_phone: z.string().optional(),
     recipient_alternative_phone: z.string().optional(),
     fee: z.number().optional(),

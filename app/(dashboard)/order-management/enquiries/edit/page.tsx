@@ -94,7 +94,7 @@ const NewEnquiryPage = () => {
         enquiry_channel: enquiryData.enquiry_channel || "",
         enquiry_occasion: enquiryData.enquiry_occasion || "",
         social_media_details: enquiryData.social_media_details || "",
-        business: enquiryData.branch?.id,
+        business: enquiryData.business?.id || undefined,
         message: enquiryData.message || "",
         delivery: {
           zone: enquiryData.delivery?.zone || "LM" as "LM" | "LC" | "LI" | "ND",
@@ -360,6 +360,86 @@ const NewEnquiryPage = () => {
                 </div>
               </AccordionContent>
             </AccordionItem>
+
+
+
+            {/* /////////////////////////////////////////////////////////////////////////////// */}
+            {/* /////////////                WEBSITE INFORMATION                 ///////////// */}
+            {/* /////////////////////////////////////////////////////////////////////////////// */}
+
+            {
+              enquiryData?.is_external_order &&
+
+              <AccordionItem value="website-order">
+                <AccordionTrigger className="py-4">
+                  <div className="flex items-center gap-5">
+                    <div className="h-10 w-10 flex items-center justify-center bg-custom-white rounded-full">
+                      <Image src="/img/book.svg" alt="" width={24} height={24} />
+                    </div>
+                    <p className="text-custom-blue font-medium">Website Order Details</p>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="flex flex-col pt-3 pb-14 gap-y-8">
+                  {enquiryData?.metadata?.line_items?.length ? (
+                    <div className="flex flex-col gap-6">
+                      {enquiryData.metadata.line_items.map((item: any, index: number) => (
+                        <div
+                          key={item.id || index}
+                          className="border rounded-lg p-6 flex flex-col gap-4"
+                        >
+                          {/* Product Name */}
+                          <div className="flex justify-between gap-4">
+                            <p className="font-semibold text-lg text-custom-blue">
+                              {item.name}
+                            </p>
+                            <p className="text-sm font-medium whitespace-pre">
+                              Quantity: {item.quantity}
+                            </p>
+                          </div>
+
+                          {/* Meta Data (Options) */}
+                          {item.meta_data?.length > 0 && (
+                            <div className="flex flex-col gap-2 text-sm [&>div:not(:last-child)]:border-b">
+                              {item.meta_data.map((meta: any, metaIndex: number) => (
+                                <div
+                                  key={meta.id || metaIndex}
+                                  className="flex justify-between pb-1 border-gray-200"
+                                >
+                                  <span className="text-gray-600 capitalize">
+                                    {meta.key?.replaceAll("_", " ")}
+                                  </span>
+                                  <span className="font-medium text-right">
+                                    {typeof meta.value === "object"
+                                      ? JSON.stringify(meta.value)
+                                      : meta.value}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Total */}
+                          <div className="flex justify-between pt-2 font-semibold">
+                            <span>Total</span>
+                            <span>
+                              {formatCurrency(
+                                Number(item.total),
+                                enquiryData.payment_currency as 'NGN' | 'USD'
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">No website order data found.</p>
+                  )}
+                </AccordionContent>
+
+              </AccordionItem>
+
+            }
+
 
 
 

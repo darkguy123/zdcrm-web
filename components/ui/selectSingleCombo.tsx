@@ -46,7 +46,7 @@ interface SelectProps<T> extends VariantProps<typeof buttonVariants> {
   isLoadingOptions?: boolean;
   triggerColor?: string;
   valueKey: keyof T;
-  labelKey: keyof T | CustomLabelFormat;
+  labelKey: keyof T & string | CustomLabelFormat;
   searchKey?: keyof T
   showSelectedValue?: boolean;
   placeHolderClass?: string;
@@ -94,9 +94,15 @@ const SelectSingleCombo = <T extends object>({
     }
     if (searchText && searchText.trim() !== "") {
       const filteredOptions = options?.filter(option => {
-        const searchT = searchKey ? String(option[searchKey as keyof T]) :
-          typeof labelKey === 'string' ?
-            String(option[labelKey as keyof T]) : '' as keyof T;
+        let searchT: string;
+
+        if (searchKey) {
+          searchT = String(option[searchKey as keyof T]);
+        } else if (typeof labelKey === 'string') {
+          searchT = String(option[labelKey as keyof T]);
+        } else {
+          searchT = generateCustomLabel(option, labelKey);
+        }
         const optionLabel = String(searchT).toLowerCase();
         return optionLabel.includes(searchText.toLowerCase());
       });
@@ -149,8 +155,8 @@ const SelectSingleCombo = <T extends object>({
               <Label className="text-sm text-[#0F172B] font-poppins font-medium" htmlFor={name || "gbo"}>
                 {label}
                 {
-                !optional && <span className="text-red-400 font-medium"> *</span>
-              }
+                  !optional && <span className="text-red-400 font-medium"> *</span>
+                }
               </Label>
             )
           }
@@ -222,7 +228,7 @@ const SelectSingleCombo = <T extends object>({
             }
             <div className="flex flex-col gap-1.5 px-5 py-3 max-h-[450px] overflow-y-auto">
               {
-                !isLoadingOptions && options && options?.length > 0 ? (
+                !isLoadingOptions && optionsToDisplay && optionsToDisplay.length > 0 ? (
                   optionsToDisplay?.map((option, index) => (
                     <button
                       className={cn("text-xs relative flex select-none items-center rounded-md px-3 py-2 outline-none aria-selected:bg-blue-100/70 aria-selected:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
