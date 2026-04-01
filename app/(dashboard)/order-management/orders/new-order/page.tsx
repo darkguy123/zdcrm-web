@@ -58,14 +58,16 @@ import { useGetAllDiscounts } from "@/app/(dashboard)/admin/discount/misc/api";
 
 const NewOrderPage = () => {
   const { data: branches, isLoading: branchesLoading } = useGetAllBranches();
-  const { data: businesses, isLoading: businessesLoading } = useGetAllBusiness();
+  const { data: businesses, isLoading: businessesLoading } =
+    useGetAllBusiness();
 
   const { data: categories, isLoading: categoriesLoading } = useGetCategories();
   const { data: products, isLoading: productsLoading } = useGetProducts();
   const { data: dispatchLocations, isLoading: dispatchLocationsLoading } =
     useGeTOrderDeliveryLocations();
-  const { data: discounts, isLoading: isLoadingDiscounts } = useGetAllDiscounts();
-  const [isCustomDiscount, setIsCustomDiscount] = useState(false)
+  const { data: discounts, isLoading: isLoadingDiscounts } =
+    useGetAllDiscounts();
+  const [isCustomDiscount, setIsCustomDiscount] = useState(false);
 
   const form = useForm<NewOrderFormValues>({
     resolver: zodResolver(NewOrderSchema),
@@ -75,7 +77,7 @@ const NewOrderPage = () => {
         name: "",
         phone: "",
         alternative_phone: "",
-        email: ""
+        email: "",
       },
       delivery: {
         zone: "LM",
@@ -83,7 +85,7 @@ const NewOrderPage = () => {
         delivery_date: format(new Date(), "yyyy-MM-dd"),
         delivery_time: format(
           new Date(Date.now() + 2 * 60 * 60 * 1000),
-          "HH:mm"
+          "HH:mm",
         ),
         address: "",
         recipient_name: "",
@@ -191,7 +193,7 @@ const NewOrderPage = () => {
           ...item,
           custom_image,
         };
-      })
+      }),
     );
     const dataToSubmit = {
       ...data,
@@ -207,7 +209,7 @@ const NewOrderPage = () => {
       },
       onError(error: unknown) {
         const errMessage = extractErrorMessage(
-          (error as any)?.response?.data as any
+          (error as any)?.response?.data as any,
         );
         toast.error(errMessage, { duration: 7500 });
       },
@@ -219,7 +221,9 @@ const NewOrderPage = () => {
     setValue("delivery.is_custom_delivery", !isCustomDelivery);
   };
   const watchedClientPhoneNumber = watch("customer.phone");
-  const watchedClientAlternativePhoneNumber = watch("customer.alternative_phone");
+  const watchedClientAlternativePhoneNumber = watch(
+    "customer.alternative_phone",
+  );
   const isDispatchOrder = watch("delivery.method") === "Dispatch";
 
   // console.log(getValues("items"));
@@ -227,9 +231,10 @@ const NewOrderPage = () => {
   return (
     <div className="px-8 md:pt-12 w-full md:w-[92.5%] max-w-[1792px] mx-auto">
       <Form {...form}>
-        <form onSubmit={handleSubmit(onSubmit)}
+        <form
+          onSubmit={handleSubmit(onSubmit)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') {
+            if (e.key === "Enter") {
               e.preventDefault();
             }
           }}
@@ -297,7 +302,9 @@ const NewOrderPage = () => {
                           <Input
                             label="Client's Alt Phone Number"
                             hasError={!!errors.customer?.alternative_phone}
-                            errorMessage={errors.customer?.alternative_phone?.message}
+                            errorMessage={
+                              errors.customer?.alternative_phone?.message
+                            }
                             placeholder="Enter client alternative phone number"
                             {...field}
                           />
@@ -588,7 +595,7 @@ const NewOrderPage = () => {
                                 labelKey={(item) =>
                                   `${item.label} (${formatCurrency(
                                     item.price,
-                                    "NGN"
+                                    "NGN",
                                   )})`
                                 }
                                 placeholder="Select dispatch location"
@@ -651,23 +658,18 @@ const NewOrderPage = () => {
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
                         <SingleDatePicker
-                          label={
-                            isDispatchOrder ? "Delivery Date" : "Pickup Date"
+                          label="Delivery Date"
+                          value={
+                            field.value ? new Date(field.value) : undefined
                           }
-                          defaultDate={new Date(field.value ?? new Date())}
-                          value={format(
-                            new Date(field.value ?? new Date()),
-                            "yyyy-MM-dd"
-                          )}
-                          onChange={(newValue) =>
-                            setValue(
-                              "delivery.delivery_date",
-                              format(newValue, "yyyy-MM-dd")
-                            )
+                          onChange={(date) =>
+                            field.onChange(format(date, "yyyy-MM-dd"))
                           }
                           placeholder="Select delivery date"
-                          disablePastDates={true}
+                          disablePastDates
+                          optional
                         />
+
                         {errors.delivery?.delivery_date && (
                           <FormError
                             errorMessage={
@@ -686,7 +688,7 @@ const NewOrderPage = () => {
                     hasError={!!errors.delivery?.delivery_time}
                     errorMessage={errors.delivery?.delivery_time?.message}
 
-                  // placeholder="Select delivery date"
+                    // placeholder="Select delivery date"
                   />
 
                   <FormField
@@ -864,68 +866,68 @@ const NewOrderPage = () => {
                   {(selectedPaymentOption === "paid_usd_transfer" ||
                     selectedPaymentOption === "paid_paypal" ||
                     selectedPaymentOption === "paid_bitcoin") && (
-                      <Controller
-                        name="amount_paid_in_usd"
-                        control={control}
-                        render={({ field }) => (
-                          <Input
-                            label="Amount Paid (USD)"
-                            id="amount_paid_in_usd"
-                            placeholder="Enter amount paid in USD"
-                            className="col-span-3"
-                            {...field}
-                            hasError={!!errors.amount_paid_in_usd}
-                            errorMessage={errors.amount_paid_in_usd?.message}
-                          />
-                        )}
-                      />
-                    )}
+                    <Controller
+                      name="amount_paid_in_usd"
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          label="Amount Paid (USD)"
+                          id="amount_paid_in_usd"
+                          placeholder="Enter amount paid in USD"
+                          className="col-span-3"
+                          {...field}
+                          hasError={!!errors.amount_paid_in_usd}
+                          errorMessage={errors.amount_paid_in_usd?.message}
+                        />
+                      )}
+                    />
+                  )}
 
                   {(selectedPaymentOption === "part_payment_cash" ||
                     selectedPaymentOption === "part_payment_transfer") && (
-                      <Controller
-                        name="initial_amount_paid"
-                        control={control}
-                        render={({ field }) => (
-                          <Input
-                            label="Initial Amount Paid"
-                            placeholder="Enter initial amount paid"
-                            id="initial_amount_paid"
-                            className=""
-                            pattern="^[0-9]*$"
-                            {...field}
-                            hasError={!!errors.initial_amount_paid}
-                            errorMessage={errors.initial_amount_paid?.message}
-                          />
-                        )}
-                      />
-                    )}
+                    <Controller
+                      name="initial_amount_paid"
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          label="Initial Amount Paid"
+                          placeholder="Enter initial amount paid"
+                          id="initial_amount_paid"
+                          className=""
+                          pattern="^[0-9]*$"
+                          {...field}
+                          hasError={!!errors.initial_amount_paid}
+                          errorMessage={errors.initial_amount_paid?.message}
+                        />
+                      )}
+                    />
+                  )}
 
                   {!(
                     selectedPaymentOption === "paid_usd_transfer" ||
                     selectedPaymentOption === "paid_paypal" ||
                     selectedPaymentOption === "paid_bitcoin"
                   ) && (
-                      <Controller
-                        name="payment_currency"
-                        control={control}
-                        render={({ field }) => (
-                          <SelectSingleCombo
-                            {...field}
-                            label="Currency"
-                            valueKey="value"
-                            labelKey="label"
-                            options={[
-                              { value: "NGN", label: "NGN" },
-                              { value: "USD", label: "USD" },
-                            ]}
-                            placeholder="Select Currency"
-                            hasError={!!errors.payment_currency}
-                            errorMessage={errors.payment_currency?.message}
-                          />
-                        )}
-                      />
-                    )}
+                    <Controller
+                      name="payment_currency"
+                      control={control}
+                      render={({ field }) => (
+                        <SelectSingleCombo
+                          {...field}
+                          label="Currency"
+                          valueKey="value"
+                          labelKey="label"
+                          options={[
+                            { value: "NGN", label: "NGN" },
+                            { value: "USD", label: "USD" },
+                          ]}
+                          placeholder="Select Currency"
+                          hasError={!!errors.payment_currency}
+                          errorMessage={errors.payment_currency?.message}
+                        />
+                      )}
+                    />
+                  )}
 
                   {watch("payment_options") !== "not_paid_go_ahead" && (
                     <>
@@ -959,7 +961,6 @@ const NewOrderPage = () => {
               </AccordionContent>
             </AccordionItem>
 
-
             {/* /////////////////////////////////////////////////////////////////////////////// */}
             {/* /////////////////////////////////////////////////////////////////////////////// */}
             {/* /////////////                  Discount section                  ////////////// */}
@@ -979,72 +980,71 @@ const NewOrderPage = () => {
               <AccordionContent className="pt-8 pb-14">
                 <div>
                   <div className="flex gap-4 items-center ">
-                    {
-                      !isCustomDiscount &&
+                    {!isCustomDiscount && (
                       <SelectSingleCombo
-                        name='discount_id'
-                        className='max-w-[350px]'
-                        value={watch('discount_id')?.toString() || ''}
-                        onChange={(value) => setValue('discount_id', Number(value))}
-                        label='Discount Type'
-                        labelKey={(item) => `${item.label} - ${formatCurrency(Number(item.amount), 'NGN')}`}
-                        valueKey={'value'}
-                        placeholder='Select discount type'
-                        options={discounts?.data?.map((discount) => ({
-                          label: discount.type,
-                          value: discount.id.toString(),
-                          amount: discount.amount
-                        })) || []}
+                        name="discount_id"
+                        className="max-w-[350px]"
+                        value={watch("discount_id")?.toString() || ""}
+                        onChange={(value) =>
+                          setValue("discount_id", Number(value))
+                        }
+                        label="Discount Type"
+                        labelKey={(item) =>
+                          `${item.label} - ${formatCurrency(Number(item.amount), "NGN")}`
+                        }
+                        valueKey={"value"}
+                        placeholder="Select discount type"
+                        options={
+                          discounts?.data?.map((discount) => ({
+                            label: discount.type,
+                            value: discount.id.toString(),
+                            amount: discount.amount,
+                          })) || []
+                        }
                         isLoadingOptions={isLoadingDiscounts}
                       />
-                    }
-
+                    )}
 
                     <Button
                       onClick={() => setIsCustomDiscount((prev) => !prev)}
                       className="mt-6 !h-12"
                       type="button"
                     >
-                      {
-                        isCustomDiscount ?
-                          "Use Regular Discounts" :
-                          "Enter Custom Amount"
-                      }
+                      {isCustomDiscount
+                        ? "Use Regular Discounts"
+                        : "Enter Custom Amount"}
                     </Button>
                   </div>
 
-                  {
-                    isCustomDiscount &&
+                  {isCustomDiscount && (
                     <div className="space-y-5">
                       <AmountInput
                         label="Discount Amount"
-                        className='max-w-[350px]'
+                        className="max-w-[350px]"
                         hasError={!!errors.custom_discount_amount}
                         errorMessage={errors.custom_discount_amount?.message}
                         placeholder="Enter discount amount"
-                        {...register('custom_discount_amount')}
+                        {...register("custom_discount_amount")}
                       />
                       <Textarea
-                        className='max-w-[350px]'
-                        placeholder='Enter discount reason'
+                        className="max-w-[350px]"
+                        placeholder="Enter discount reason"
                         label="Discount Reason"
-                      // {...register('custom_discount_reason')}
+                        // {...register('custom_discount_reason')}
                       />
                     </div>
-                  }
+                  )}
                   <Button
                     type="button"
-                    className='flex items-center gap-1 mt-4 text-[#d8636d] bg-red-100'
-                    onClick={() => setValue('discount_id', undefined)}
+                    className="flex items-center gap-1 mt-4 text-[#d8636d] bg-red-100"
+                    onClick={() => setValue("discount_id", undefined)}
                   >
-                    <Trash className='w-5 h-5 text-[#d8636d]' />
-
+                    <Trash className="w-5 h-5 text-[#d8636d]" />
                     Remove discount
                   </Button>
                 </div>
               </AccordionContent>
             </AccordionItem>
-
           </Accordion>
 
           <footer className="flex py-16">

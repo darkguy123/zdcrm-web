@@ -16,7 +16,6 @@ const CompleteOrderPage = () => {
     const order_id = useParams()?.id as string;
     const { data: order, isLoading } = useGeTOrderDetail(order_id);
 
-    console.log(order)
 
     const router = useRouter();
     const goBack = () => {
