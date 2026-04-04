@@ -12,7 +12,8 @@ export interface TOrder {
   order_number: string;
   enquiry_channel: string;
   enquiry_occasion: string;
-  branch: Branch;
+  business: Business;
+  branch: Business;
   message: string | null;
   metadata: WebsiteMetadata;
   status: string;
@@ -61,6 +62,7 @@ export interface WebsiteMetadata {
 export interface OrderItem {
   id: number;
   product: Product;
+  product_name: string;
   product_variation: Productvariation | Productvariation2 | Productvariation3;
   quantity: number;
   miscellaneous: Array<any>;
@@ -285,7 +287,7 @@ interface Dispatch {
   delivery_price: string;
 }
 
-interface Branch {
+interface Business {
   id: number;
   name: string;
   phone_number: null;

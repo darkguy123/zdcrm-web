@@ -12,7 +12,7 @@ import { Plus, UserIcon } from "lucide-react";
 import toast from "react-hot-toast";
 import { format } from "date-fns";
 
-import useCloudinary from '@/hooks/useCloudinary';
+import useCloudinary from "@/hooks/useCloudinary";
 import {
   Accordion,
   AccordionContent,
@@ -45,7 +45,10 @@ import {
 } from "@/constants";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useGetCategories, useGetProducts } from "@/app/(dashboard)/inventory/misc/api";
+import {
+  useGetCategories,
+  useGetProducts,
+} from "@/app/(dashboard)/inventory/misc/api";
 import FormError from "@/components/ui/formError";
 import { formatCurrency } from "@/utils/currency";
 import { useBooleanStateControl } from "@/hooks";
@@ -64,39 +67,39 @@ import { useGetAllBranches } from "@/app/(dashboard)/admin/businesses/misc/api";
 import { useGetAllBusiness } from "@/mutations/business.mutation";
 import { useGetAllDiscounts } from "@/app/(dashboard)/admin/discount/misc/api";
 
-
-
 const NewEnquiryPage = () => {
-
   const { data: branches, isLoading: branchesLoading } = useGetAllBranches();
-  const { data: businesses, isLoading: businessesLoading } = useGetAllBusiness();
+  const { data: businesses, isLoading: businessesLoading } =
+    useGetAllBusiness();
   const { data: categories, isLoading: categoriesLoading } = useGetCategories();
   const { data: products, isLoading: productsLoading } = useGetProducts();
-  const { data: dispatchLocations, isLoading: dispatchLocationsLoading } = useGeTOrderDeliveryLocations();
-  const { data: discounts, isLoading: isLoadingDiscounts } = useGetAllDiscounts();
-  const [isCustomDiscount, setIsCustomDiscount] = useState(false)
-
+  const { data: dispatchLocations, isLoading: dispatchLocationsLoading } =
+    useGeTOrderDeliveryLocations();
+  const { data: discounts, isLoading: isLoadingDiscounts } =
+    useGetAllDiscounts();
+  const [isCustomDiscount, setIsCustomDiscount] = useState(false);
 
   const form = useForm<NewEnquiryFormValues>({
     resolver: zodResolver(NewEnquirySchema),
     defaultValues: {
       business: branches?.data?.[0].id,
       customer: {
-        name: "", phone: "",
+        name: "",
+        phone: "",
         alternative_phone: "",
-        email: ""
+        email: "",
       },
       delivery: {
         zone: "LM",
         method: "Dispatch",
-        delivery_date: format(new Date(), 'yyyy-MM-dd'),
+        delivery_date: format(new Date(), "yyyy-MM-dd"),
         delivery_time: format(
           (() => {
             const now = new Date();
             now.setHours(now.getHours() + 2);
             return now;
           })(),
-          'HH:mm'
+          "HH:mm",
         ),
         address: "",
         recipient_name: "",
@@ -109,116 +112,138 @@ const NewEnquiryPage = () => {
       enquiry_channel: "",
       enquiry_occasion: "",
       items: undefined,
-    }
+    },
   });
 
-  const { control, handleSubmit, formState: { errors }, watch, setValue, getValues, register, reset } = form;
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    setValue,
+    getValues,
+    register,
+    reset,
+  } = form;
   const { fields, append, remove } = useFieldArray({
     control,
-    name: "items"
+    name: "items",
   });
-
 
   const addNewItem = () => {
     append({
       category: undefined,
       product_id: undefined,
-      product_variation_id: '',
+      product_variation_id: "",
       quantity: undefined,
       properties: {},
-      inventories: [{
-        variations: [],
-      }],
+      inventories: [
+        {
+          variations: [],
+        },
+      ],
     });
   };
 
   useEffect(() => {
-    console.log(form.formState.errors)
-  }, [form.formState.errors])
+    console.log(form.formState.errors);
+  }, [form.formState.errors]);
 
   const router = useRouter();
   const {
     state: isSuccessModalOpen,
     setTrue: openSuccessModal,
     setFalse: closeSuccessModal,
-  } = useBooleanStateControl()
+  } = useBooleanStateControl();
 
-  const { mutate, isPending } = useCreateEnquiry()
-  const { uploadToCloudinary } = useCloudinary()
-  const [createdEnquiry, setCreatedEnquiry] = React.useState<string | number | null>(null);
- const onSubmit = async (data: NewEnquiryFormValues) => {
+  const { mutate, isPending } = useCreateEnquiry();
+  const { uploadToCloudinary } = useCloudinary();
+  const [createdEnquiry, setCreatedEnquiry] = React.useState<
+    string | number | null
+  >(null);
+  const onSubmit = async (data: NewEnquiryFormValues) => {
+    const cleanedItems = (data.items || []).filter(
+      (item) => item.category || item.product_id || item.product_variation_id,
+    );
 
-  const cleanedItems = (data.items || []).filter(
-    (item) => item.category || item.product_id || item.product_variation_id
-  )
+    const processedItems = await Promise.all(
+      cleanedItems.map(async (item) => {
+        let custom_image: string | undefined;
 
-  const processedItems = await Promise.all(
-    cleanedItems.map(async (item) => {
-      let custom_image: string | undefined
+        if (item.custom_image) {
+          const uploadResult = await uploadToCloudinary(item.custom_image);
+          custom_image = uploadResult.secure_url;
+        }
 
-      if (item.custom_image) {
-        const uploadResult = await uploadToCloudinary(item.custom_image)
-        custom_image = uploadResult.secure_url
-      }
+        return {
+          ...item,
+          custom_image,
+        };
+      }),
+    );
 
-      return {
-        ...item,
-        custom_image,
-      }
-    })
-  )
+    // remove items from original form data
+    const { items, ...rest } = data;
 
-  // remove items from original form data
-  const { items, ...rest } = data
+    const dataToSubmit = {
+      ...rest,
+      ...(processedItems.length ? { items: processedItems } : {}),
+    };
 
-  const dataToSubmit = {
-    ...rest,
-    ...(processedItems.length ? { items: processedItems } : {}),
-  }
-
-  mutate(dataToSubmit, {
-    onSuccess(data) {
-      toast.success("Enquiry created successfully")
-      openSuccessModal()
-      setCreatedEnquiry(data?.data?.id)
-    },
-    onError(error: unknown) {
-      const errMessage = extractErrorMessage((error as any)?.response?.data as any)
-      toast.error(errMessage, { duration: 7500 })
-    }
-  })
-}
+    mutate(dataToSubmit, {
+      onSuccess(data) {
+        toast.success("Enquiry created successfully");
+        openSuccessModal();
+        setCreatedEnquiry(data?.data?.id);
+      },
+      onError(error: unknown) {
+        const errMessage = extractErrorMessage(
+          (error as any)?.response?.data as any,
+        );
+        toast.error(errMessage, { duration: 7500 });
+      },
+    });
+  };
 
   const routeToEnquiryDetails = () => {
     router.push(`/order-management/enquiries/${createdEnquiry}`);
-  }
+  };
 
   const resetForm = () => {
     reset();
-  }
+  };
   const isCustomDelivery = watch(`delivery.is_custom_delivery`);
   const toggleCustomDelivery = () => {
-    setValue('delivery.is_custom_delivery', !isCustomDelivery);
-  }
-  const watchedClientPhoneNumber = watch('customer.phone')
-  const watchedClientAlternativePhoneNumber = watch('customer.alternative_phone')
+    setValue("delivery.is_custom_delivery", !isCustomDelivery);
+  };
+  const watchedClientPhoneNumber = watch("customer.phone");
+  const watchedClientAlternativePhoneNumber = watch(
+    "customer.alternative_phone",
+  );
 
-  const isDispatchOrder = watch('delivery.method') === "Dispatch"
+  const isDispatchOrder = watch("delivery.method") === "Dispatch";
   // console.log(getValues('items'))
 
   return (
     <div className="px-8 md:pt-12 w-full md:w-[92.5%] max-w-[1792px] mx-auto">
       <Form {...form}>
-        <form onSubmit={handleSubmit(onSubmit)}
+        <form
+          onSubmit={handleSubmit(onSubmit)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') {
+            if (e.key === "Enter") {
               e.preventDefault();
             }
           }}
         >
           <Accordion
             type="multiple"
-            defaultValue={["client-information", "Enquiry-information", "delivery-information", "Enquiry-Instruction", "payment-information",]}
+            defaultValue={[
+              "client-information",
+              "Enquiry-information",
+              "delivery-information",
+              "Enquiry-Instruction",
+              "payment-information",
+            ]}
             className="w-full"
           >
             {/* /////////////////////////////////////////////////////////////////////////////// */}
@@ -228,9 +253,16 @@ const NewEnquiryPage = () => {
               <AccordionTrigger className="py-4 flex">
                 <div className="flex items-center gap-5 text-[#194A7A]">
                   <div className="flex items-center justify-center p-1.5 h-10 w-10 rounded-full bg-[#F2F2F2]">
-                    <UserIcon className="text-custom-blue" stroke="#194a7a" fill="#194a7a" size={18} />
+                    <UserIcon
+                      className="text-custom-blue"
+                      stroke="#194a7a"
+                      fill="#194a7a"
+                      size={18}
+                    />
                   </div>
-                  <h3 className="text-custom-blue font-medium">Client Information</h3>
+                  <h3 className="text-custom-blue font-medium">
+                    Client Information
+                  </h3>
                 </div>
               </AccordionTrigger>
               <AccordionContent>
@@ -249,9 +281,13 @@ const NewEnquiryPage = () => {
                             {...field}
                           />
                         </FormControl>
-                        {
-                          watchedClientPhoneNumber?.length == 11 && <Link href={`/order-management/client-history/${watchedClientPhoneNumber}`}>View history</Link>
-                        }
+                        {watchedClientPhoneNumber?.length == 11 && (
+                          <Link
+                            href={`/order-management/client-history/${watchedClientPhoneNumber}`}
+                          >
+                            View history
+                          </Link>
+                        )}
                       </FormItem>
                     )}
                   />
@@ -264,7 +300,9 @@ const NewEnquiryPage = () => {
                           <Input
                             label="Client's Alt Phone Number"
                             hasError={!!errors.customer?.alternative_phone}
-                            errorMessage={errors.customer?.alternative_phone?.message}
+                            errorMessage={
+                              errors.customer?.alternative_phone?.message
+                            }
                             placeholder="Enter client alternative phone number"
                             {...field}
                           />
@@ -372,8 +410,6 @@ const NewEnquiryPage = () => {
               </AccordionContent>
             </AccordionItem>
 
-
-
             {/* /////////////////////////////////////////////////////////////////////////////// */}
             {/* /////////////                  Enquiry INFORMATION                  ///////////// */}
             {/* /////////////////////////////////////////////////////////////////////////////// */}
@@ -383,13 +419,14 @@ const NewEnquiryPage = () => {
                   <div className="h-10 w-10 flex items-center justify-center bg-custom-white rounded-full">
                     <Image src="/img/book.svg" alt="" width={24} height={24} />
                   </div>
-                  <p className="text-custom-blue font-medium">Enquiry Details</p>
+                  <p className="text-custom-blue font-medium">
+                    Enquiry Details
+                  </p>
                 </div>
               </AccordionTrigger>
               <AccordionContent className="flex flex-col pt-3 pb-14 gap-y-8">
                 <section className="flex items-center justify-between gap-10">
-                  {
-                    (!!watch('items') && !!watch('items')?.length) &&
+                  {!!watch("items") && !!watch("items")?.length && (
                     <Controller
                       name="business"
                       control={control}
@@ -416,33 +453,35 @@ const NewEnquiryPage = () => {
                         />
                       )}
                     />
-                  }
-                  {
-                    !watch('items')?.length &&
+                  )}
+                  {!watch("items")?.length && (
                     <div className="w-full h-48 flex items-center justify-center">
-                      <Button size="inputButton" onClick={addNewItem} className="w-full max-w-[300px]" type="button">
+                      <Button
+                        size="inputButton"
+                        onClick={addNewItem}
+                        className="w-full max-w-[300px]"
+                        type="button"
+                      >
                         Add Item
                       </Button>
                     </div>
-                  }
+                  )}
                 </section>
                 <section className="flex flex-col gap-y-12 lg:gap-y-20">
-                  {
-                    watch('items')?.map((_, index) => {
-                      return (
-                        <EnquiryFormItemsSection
-                          key={index}
-                          index={index}
-                          control={control}
-                          watch={watch}
-                          errors={errors}
-                          register={register}
-                          setValue={setValue}
-                          addNewItem={addNewItem}
-                        />
-                      )
-                    })
-                  }
+                  {watch("items")?.map((_, index) => {
+                    return (
+                      <EnquiryFormItemsSection
+                        key={index}
+                        index={index}
+                        control={control}
+                        watch={watch}
+                        errors={errors}
+                        register={register}
+                        setValue={setValue}
+                        addNewItem={addNewItem}
+                      />
+                    );
+                  })}
                 </section>
               </AccordionContent>
             </AccordionItem>
@@ -454,14 +493,19 @@ const NewEnquiryPage = () => {
               <AccordionTrigger className="py-4 flex">
                 <div className="flex items-center gap-5 text-[#194A7A]">
                   <div className="flex items-center justify-center p-1.5 h-10 w-10 rounded-full bg-[#F2F2F2]">
-                    <TruckTime className="text-custom-blue" stroke="#194a7a" size={18} />
+                    <TruckTime
+                      className="text-custom-blue"
+                      stroke="#194a7a"
+                      size={18}
+                    />
                   </div>
-                  <h3 className="text-custom-blue font-medium">Delivery Details</h3>
+                  <h3 className="text-custom-blue font-medium">
+                    Delivery Details
+                  </h3>
                 </div>
               </AccordionTrigger>
               <AccordionContent className="pt-5">
                 <div className="grid grid-cols-2 xl:grid-cols-3 gap-10 pt-8 pb-14 w-full">
-
                   <FormField
                     control={control}
                     name="delivery.method"
@@ -482,17 +526,13 @@ const NewEnquiryPage = () => {
                     )}
                   />
 
-                  {
-                    watch('delivery.method') === "Dispatch" &&
+                  {watch("delivery.method") === "Dispatch" && (
                     <>
-
                       <FormField
                         control={control}
                         name="delivery.address"
                         render={({ field }) => (
-                          <FormItem
-                            className="col-span-full md:col-span-2"
-                          >
+                          <FormItem className="col-span-full md:col-span-2">
                             <FormControl>
                               <Input
                                 className=""
@@ -532,39 +572,50 @@ const NewEnquiryPage = () => {
                         name="delivery.dispatch"
                         render={({ field }) => (
                           <FormItem>
-                            {
-                              isCustomDelivery ?
-                                <Input
-                                  label="Delivery Fee"
-                                  {...register('delivery.fee', { valueAsNumber: true })}
-                                  hasError={!!errors.delivery?.fee}
-                                  errorMessage={errors.delivery?.fee?.message}
-                                  placeholder="Enter delivery fee"
-                                  optional
-                                />
-                                :
-                                <SelectSingleCombo
-                                  label="Dispatch Location"
-                                  {...field}
-                                  value={field.value?.toString() || ''}
-                                  isLoadingOptions={dispatchLocationsLoading}
-                                  options={dispatchLocations?.data?.map(loc => ({ label: loc.location, value: loc.id.toString(), price: loc.delivery_price })) || []}
-                                  valueKey={"value"}
-                                  labelKey={(item) => `${item.label} (${formatCurrency(item.price, 'NGN')})`}
-                                  placeholder="Select dispatch location"
-                                  hasError={!!errors.delivery?.dispatch}
-                                  errorMessage={errors.delivery?.dispatch?.message}
-                                  optional
-                                />
-                            }
+                            {isCustomDelivery ? (
+                              <Input
+                                label="Delivery Fee"
+                                {...register("delivery.fee", {
+                                  valueAsNumber: true,
+                                })}
+                                hasError={!!errors.delivery?.fee}
+                                errorMessage={errors.delivery?.fee?.message}
+                                placeholder="Enter delivery fee"
+                                optional
+                              />
+                            ) : (
+                              <SelectSingleCombo
+                                label="Dispatch Location"
+                                {...field}
+                                value={field.value?.toString() || ""}
+                                isLoadingOptions={dispatchLocationsLoading}
+                                options={
+                                  dispatchLocations?.data?.map((loc) => ({
+                                    label: loc.location,
+                                    value: loc.id.toString(),
+                                    price: loc.delivery_price,
+                                  })) || []
+                                }
+                                valueKey={"value"}
+                                labelKey={(item) =>
+                                  `${item.label} (${formatCurrency(item.price, "NGN")})`
+                                }
+                                placeholder="Select dispatch location"
+                                hasError={!!errors.delivery?.dispatch}
+                                errorMessage={
+                                  errors.delivery?.dispatch?.message
+                                }
+                                optional
+                              />
+                            )}
                             <button
                               className="bg-custom-blue rounded-none px-4 py-1.5 text-xs text-white"
                               onClick={toggleCustomDelivery}
                               type="button"
                             >
-                              {
-                                !isCustomDelivery ? "+ Custom Delivery" : "- Regular Delivery"
-                              }
+                              {!isCustomDelivery
+                                ? "+ Custom Delivery"
+                                : "- Regular Delivery"}
                             </button>
                           </FormItem>
                         )}
@@ -589,7 +640,9 @@ const NewEnquiryPage = () => {
                                 labelKey="label"
                                 label="Residence Type"
                                 hasError={!!errors.delivery?.residence_type}
-                                errorMessage={errors.delivery?.residence_type?.message}
+                                errorMessage={
+                                  errors.delivery?.residence_type?.message
+                                }
                                 placeholder="Enter residence type"
                                 optional
                                 {...field}
@@ -600,7 +653,7 @@ const NewEnquiryPage = () => {
                         )}
                       />
                     </>
-                  }
+                  )}
 
                   <FormField
                     control={control}
@@ -608,19 +661,25 @@ const NewEnquiryPage = () => {
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
                         <SingleDatePicker
-                          label={isDispatchOrder ? "Delivery Date" : "Pickup Date"}
-                          defaultDate={new Date(field.value ?? new Date())}
-                          value={format(new Date(field.value ?? new Date()), 'yyyy-MM-dd')}
-                          onChange={(newValue) => setValue('delivery.delivery_date', format(newValue, 'yyyy-MM-dd'))}
+                          label="Delivery Date"
+                          value={
+                            field.value ? new Date(field.value) : undefined
+                          }
+                          onChange={(date) =>
+                            field.onChange(format(date, "yyyy-MM-dd"))
+                          }
                           placeholder="Select delivery date"
-                          disablePastDates={true}
+                          disablePastDates
                           optional
                         />
-                        {
-                          errors.delivery?.delivery_date &&
-                          <FormError errorMessage={errors.delivery?.delivery_date?.message as string}
+
+                        {errors.delivery?.delivery_date && (
+                          <FormError
+                            errorMessage={
+                              errors.delivery?.delivery_date?.message as string
+                            }
                           />
-                        }
+                        )}
                       </FormItem>
                     )}
                   />
@@ -631,7 +690,6 @@ const NewEnquiryPage = () => {
                     name="delivery.delivery_time"
                     hasError={!!errors.delivery?.delivery_time}
                     errorMessage={errors.delivery?.delivery_time?.message}
-
                     optional
                   />
                   <FormField
@@ -641,11 +699,21 @@ const NewEnquiryPage = () => {
                       <FormItem>
                         <FormControl>
                           <Input
-                            label={isDispatchOrder ? "Recipient's Name" : "Pickup Contact Name"}
+                            label={
+                              isDispatchOrder
+                                ? "Recipient's Name"
+                                : "Pickup Contact Name"
+                            }
                             {...field}
                             hasError={!!errors.delivery?.recipient_name}
-                            errorMessage={errors.delivery?.recipient_name?.message}
-                            placeholder={isDispatchOrder ? "Enter recipient name" : "Enter pickup contact name"}
+                            errorMessage={
+                              errors.delivery?.recipient_name?.message
+                            }
+                            placeholder={
+                              isDispatchOrder
+                                ? "Enter recipient name"
+                                : "Enter pickup contact name"
+                            }
                             optional
                           />
                         </FormControl>
@@ -659,11 +727,21 @@ const NewEnquiryPage = () => {
                       <FormItem>
                         <FormControl>
                           <Input
-                            label={isDispatchOrder ? "Recipient's Phone Number" : "Pickup Contact Phone Number"}
+                            label={
+                              isDispatchOrder
+                                ? "Recipient's Phone Number"
+                                : "Pickup Contact Phone Number"
+                            }
                             {...field}
                             hasError={!!errors.delivery?.recipient_phone}
-                            errorMessage={errors.delivery?.recipient_phone?.message}
-                            placeholder={isDispatchOrder ? "Enter recipient phone number" : "Enter pickup contact phone number"}
+                            errorMessage={
+                              errors.delivery?.recipient_phone?.message
+                            }
+                            placeholder={
+                              isDispatchOrder
+                                ? "Enter recipient phone number"
+                                : "Enter pickup contact phone number"
+                            }
                             optional
                           />
                         </FormControl>
@@ -677,18 +755,30 @@ const NewEnquiryPage = () => {
                       <FormItem>
                         <FormControl>
                           <Input
-                            label={isDispatchOrder ? "Recipient's Alt Phone Number" : "Pickup Contact Alt Phone Number"}
+                            label={
+                              isDispatchOrder
+                                ? "Recipient's Alt Phone Number"
+                                : "Pickup Contact Alt Phone Number"
+                            }
                             {...field}
-                            hasError={!!errors.delivery?.recipient_alternative_phone}
-                            errorMessage={errors.delivery?.recipient_alternative_phone?.message}
-                            placeholder={isDispatchOrder ? "Enter recipient alternative phone number" : "Enter pickup contact alternative phone number"}
+                            hasError={
+                              !!errors.delivery?.recipient_alternative_phone
+                            }
+                            errorMessage={
+                              errors.delivery?.recipient_alternative_phone
+                                ?.message
+                            }
+                            placeholder={
+                              isDispatchOrder
+                                ? "Enter recipient alternative phone number"
+                                : "Enter pickup contact alternative phone number"
+                            }
                             optional
                           />
                         </FormControl>
                       </FormItem>
                     )}
                   />
-
 
                   <FormField
                     control={control}
@@ -708,7 +798,6 @@ const NewEnquiryPage = () => {
                       </FormItem>
                     )}
                   />
-
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -741,8 +830,6 @@ const NewEnquiryPage = () => {
               </AccordionContent>
             </AccordionItem>
 
-
-
             {/* /////////////////////////////////////////////////////////////////////////////// */}
             {/* /////////////////////////////////////////////////////////////////////////////// */}
             {/* /////////////                  Discount section                  ////////////// */}
@@ -762,74 +849,71 @@ const NewEnquiryPage = () => {
               <AccordionContent className="pt-8 pb-14">
                 <div>
                   <div className="flex gap-4 items-center ">
-                    {
-                      !isCustomDiscount &&
+                    {!isCustomDiscount && (
                       <SelectSingleCombo
-                        name='discount_id'
-                        className='max-w-[350px]'
-                        value={watch('discount_id')?.toString() || ''}
-                        onChange={(value) => setValue('discount_id', Number(value))}
-                        label='Discount Type'
-                        labelKey={(item) => `${item.label} - ${formatCurrency(Number(item.amount), 'NGN')}`}
-                        valueKey={'value'}
-                        placeholder='Select discount type'
-                        options={discounts?.data?.map((discount) => ({
-                          label: discount.type,
-                          value: discount.id.toString(),
-                          amount: discount.amount
-                        })) || []}
+                        name="discount_id"
+                        className="max-w-[350px]"
+                        value={watch("discount_id")?.toString() || ""}
+                        onChange={(value) =>
+                          setValue("discount_id", Number(value))
+                        }
+                        label="Discount Type"
+                        labelKey={(item) =>
+                          `${item.label} - ${formatCurrency(Number(item.amount), "NGN")}`
+                        }
+                        valueKey={"value"}
+                        placeholder="Select discount type"
+                        options={
+                          discounts?.data?.map((discount) => ({
+                            label: discount.type,
+                            value: discount.id.toString(),
+                            amount: discount.amount,
+                          })) || []
+                        }
                         isLoadingOptions={isLoadingDiscounts}
                       />
-                    }
-
+                    )}
 
                     <Button
                       onClick={() => setIsCustomDiscount((prev) => !prev)}
                       className="mt-6 !h-12"
                       type="button"
                     >
-                      {
-                        isCustomDiscount ?
-                          "Use Regular Discounts" :
-                          "Enter Custom Amount"
-                      }
+                      {isCustomDiscount
+                        ? "Use Regular Discounts"
+                        : "Enter Custom Amount"}
                     </Button>
                   </div>
 
-                  {
-                    isCustomDiscount &&
+                  {isCustomDiscount && (
                     <div className="space-y-5">
                       <AmountInput
                         label="Discount Amount"
-                        className='max-w-[350px]'
+                        className="max-w-[350px]"
                         hasError={!!errors.custom_discount_amount}
                         errorMessage={errors.custom_discount_amount?.message}
                         placeholder="Enter discount amount"
-                        {...register('custom_discount_amount')}
+                        {...register("custom_discount_amount")}
                       />
                       <Textarea
-                        className='max-w-[350px]'
-                        placeholder='Enter discount reason'
+                        className="max-w-[350px]"
+                        placeholder="Enter discount reason"
                         label="Discount Reason"
-                      // {...register('custom_discount_reason')}
+                        // {...register('custom_discount_reason')}
                       />
                     </div>
-                  }
+                  )}
                   <Button
                     type="button"
-                    className='flex items-center gap-1 mt-4 text-[#d8636d] bg-red-100'
-                    onClick={() => setValue('discount_id', undefined)}
+                    className="flex items-center gap-1 mt-4 text-[#d8636d] bg-red-100"
+                    onClick={() => setValue("discount_id", undefined)}
                   >
-                    <Trash className='w-5 h-5 text-[#d8636d]' />
-
+                    <Trash className="w-5 h-5 text-[#d8636d]" />
                     Remove discount
                   </Button>
                 </div>
               </AccordionContent>
             </AccordionItem>
-
-
-
           </Accordion>
 
           <footer className="flex py-16">
@@ -841,14 +925,11 @@ const NewEnquiryPage = () => {
               disabled={isPending}
             >
               Proceed
-              {
-                isPending && <Spinner size={20} />
-              }
+              {isPending && <Spinner size={20} />}
             </Button>
           </footer>
         </form>
       </Form>
-
 
       <ConfirmActionModal
         isModalOpen={isSuccessModalOpen}

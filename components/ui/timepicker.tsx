@@ -42,7 +42,7 @@ const CustomTimePicker = React.forwardRef<HTMLDivElement, CustomTimePickerProps>
   } = useController({
     name,
     control,
-    defaultValue: "15:00", // Set a static default instead of reactive one
+    // defaultValue: "15:00", // Set a static default instead of reactive one
   })
 
   const [hour, setHour] = React.useState(() => {
@@ -69,19 +69,17 @@ const CustomTimePicker = React.forwardRef<HTMLDivElement, CustomTimePickerProps>
     return "PM" // Default to PM for 15:00
   })
 
-  const [isInitialized, setIsInitialized] = React.useState(false)
-
   React.useEffect(() => {
-    if (value && !isInitialized) {
-      const [h, m] = value.split(":")
-      const hour24 = Number.parseInt(h)
-      const hour12 = hour24 % 12 || 12
-      setHour(hour12.toString().padStart(2, "0"))
-      setMinute(m)
-      setPeriod(hour24 >= 12 ? "PM" : "AM")
-      setIsInitialized(true)
-    }
-  }, [value, isInitialized])
+  if (value) {
+    const [h, m] = value.split(":")
+    const hour24 = Number.parseInt(h)
+    const hour12 = hour24 % 12 || 12
+
+    setHour(hour12.toString().padStart(2, "0"))
+    setMinute(m)
+    setPeriod(hour24 >= 12 ? "PM" : "AM")
+  }
+}, [value])
 
   const handleTimeChange = React.useCallback(() => {
     let hour24 = Number.parseInt(hour)
@@ -94,11 +92,11 @@ const CustomTimePicker = React.forwardRef<HTMLDivElement, CustomTimePickerProps>
     onChange(time)
   }, [hour, minute, period, onChange])
 
-  React.useEffect(() => {
-    if (isInitialized) {
-      handleTimeChange()
-    }
-  }, [hour, minute, period, isInitialized, handleTimeChange])
+React.useEffect(() => {
+  if (hour && minute && period) {
+    handleTimeChange()
+  }
+}, [hour, minute, period])
 
   const incrementHour = () => {
     const newHour = Number.parseInt(hour) + 1
