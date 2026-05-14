@@ -2,11 +2,24 @@
   "name": "zdcrm-hub",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "next dev",
+    "dev:web": "next dev",
+    "dev:api": "npm run start:dev -w @zdcrm/api",
     "build": "next build",
+    "build:web": "next build",
+    "build:api": "npm run build -w @zdcrm/api",
     "start": "next start",
-    "lint": "next lint"
+    "start:api": "npm run start:prod -w @zdcrm/api",
+    "lint": "next lint",
+    "lint:web": "next lint",
+    "lint:api": "npm run lint -w @zdcrm/api",
+    "db:migrate": "npm run prisma:migrate -w @zdcrm/api",
+    "db:generate": "npm run prisma:generate -w @zdcrm/api"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

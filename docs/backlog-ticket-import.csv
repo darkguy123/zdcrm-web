@@ -1,0 +1,34 @@
+external_id,parent_external_id,issue_type,summary,description,labels,priority,sprint
+EPIC-P1,,Epic,Phase 1 Foundation and Restructure,"Monorepo scaffold, codebase normalization, env/config standards, and baseline architecture hardening.",phase-1;critical,Highest,Sprint-1
+STORY-P1-1,EPIC-P1,Story,Scaffold monorepo workspace,"Create apps and packages folders, workspace scripts, and migration-safe structure.",phase-1;architecture,Highest,Sprint-1
+TASK-P1-1-1,STORY-P1-1,Task,Add npm workspaces and root scripts,"Configure root package scripts for web, api, and db commands.",phase-1;devex,Highest,Sprint-1
+TASK-P1-1-2,STORY-P1-1,Task,Create apps/api skeleton,"Add NestJS bootstrap, module registration, and health endpoint.",phase-1;backend,Highest,Sprint-1
+TASK-P1-1-3,STORY-P1-1,Task,Create package placeholders,"Create shared-types, shared-validation, config, and ui package directories.",phase-1;architecture,High,Sprint-1
+STORY-P1-2,EPIC-P1,Story,Normalize frontend structure,"Define target apps/web feature modules and migration map from current root app.",phase-1;frontend,High,Sprint-1
+TASK-P1-2-1,STORY-P1-2,Task,Define modules boundary map,"Map auth, orders, enquiries, inventory, delivery, analytics, and admin modules.",phase-1;frontend,High,Sprint-1
+TASK-P1-2-2,STORY-P1-2,Task,Clean duplicate and copy files,"Remove copy-suffixed files from production paths after confirming no usage.",phase-1;cleanup,High,Sprint-1
+STORY-P1-3,EPIC-P1,Story,Harden API standards,"Add global validation, exception filters, and response envelope conventions.",phase-1;backend,Highest,Sprint-1
+TASK-P1-3-1,STORY-P1-3,Task,Implement global validation pipe,"Enable whitelist, transform, and non-whitelisted field blocking.",phase-1;security,Highest,Sprint-1
+TASK-P1-3-2,STORY-P1-3,Task,Implement exception filter,"Return consistent structured error payloads across API endpoints.",phase-1;backend,Highest,Sprint-1
+STORY-P1-4,EPIC-P1,Story,Auth v1 contract integration,"Implement login, refresh, and me contracts and connect frontend auth client.",phase-1;auth,Highest,Sprint-2
+TASK-P1-4-1,STORY-P1-4,Task,Create auth DTOs and service contracts,"Create validated DTOs and controller endpoints for auth flows.",phase-1;auth,Highest,Sprint-2
+TASK-P1-4-2,STORY-P1-4,Task,Integrate frontend auth client,"Switch frontend auth provider to new API contract endpoints.",phase-1;frontend;auth,Highest,Sprint-2
+STORY-P1-5,EPIC-P1,Story,Baseline CI pipeline,"Add lint, typecheck, build workflow and enforce branch quality gates.",phase-1;devops,Highest,Sprint-2
+TASK-P1-5-1,STORY-P1-5,Task,Create GitHub Actions pipeline,"Run web lint/typecheck and api lint/build in CI.",phase-1;ci,Highest,Sprint-2
+TASK-P1-5-2,STORY-P1-5,Task,Add PR quality rules,"Require status checks and no direct merges to main.",phase-1;governance,High,Sprint-2
+EPIC-P2,,Epic,Phase 2 Database and API Core,"PostgreSQL schema, migrations, DTO validation middleware, and robust API foundations.",phase-2;critical,Highest,Sprint-3
+STORY-P2-1,EPIC-P2,Story,Design normalized PostgreSQL schema,"Implement multi-business, multi-branch CRM schema for orders, payments, inventory, and delivery.",phase-2;database,Highest,Sprint-3
+TASK-P2-1-1,STORY-P2-1,Task,Create Prisma schema,"Add models for users, businesses, branches, customers, products, inventory, orders, payments, deliveries, notifications, audit logs, and feedback.",phase-2;database,Highest,Sprint-3
+TASK-P2-1-2,STORY-P2-1,Task,Create initial SQL migration,"Generate baseline SQL migration with enums, FKs, unique constraints, and indexes.",phase-2;database,Highest,Sprint-3
+STORY-P2-2,EPIC-P2,Story,Provision local database runtime,"Create docker compose and env conventions for local developer setup.",phase-2;database;devex,High,Sprint-3
+TASK-P2-2-1,STORY-P2-2,Task,Add PostgreSQL docker-compose service,"Provision Postgres 16 with named volume and mapped port.",phase-2;database,High,Sprint-3
+TASK-P2-2-2,STORY-P2-2,Task,Add env template for API,"Create .env.example with DB and JWT variables.",phase-2;config,High,Sprint-3
+STORY-P2-3,EPIC-P2,Story,Implement API module skeleton,"Scaffold auth/users/businesses/branches and database module with Prisma service.",phase-2;backend,Highest,Sprint-3
+TASK-P2-3-1,STORY-P2-3,Task,Create database module,"Create global Prisma service module for DI.",phase-2;backend,Highest,Sprint-3
+TASK-P2-3-2,STORY-P2-3,Task,Create domain module placeholders,"Create controllers and services for auth/users/businesses/branches.",phase-2;backend,High,Sprint-3
+STORY-P2-4,EPIC-P2,Story,Add API query conventions,"Introduce pagination and filter standards for list endpoints.",phase-2;api-design,High,Sprint-4
+TASK-P2-4-1,STORY-P2-4,Task,Define pagination DTO,"Create reusable query DTO for page, limit, sort, and search.",phase-2;backend,High,Sprint-4
+TASK-P2-4-2,STORY-P2-4,Task,Adopt filter parser utility,"Standardize filter parser utility across module list endpoints.",phase-2;backend,High,Sprint-4
+STORY-P2-5,EPIC-P2,Story,Create smoke test harness,"Validate migrations and CRUD health on core entities.",phase-2;qa,High,Sprint-4
+TASK-P2-5-1,STORY-P2-5,Task,Add migration smoke script,"Run migration from clean DB and assert schema integrity.",phase-2;qa;database,High,Sprint-4
+TASK-P2-5-2,STORY-P2-5,Task,Add API smoke tests,"Validate health, auth contract, and list endpoints return structured responses.",phase-2;qa;backend,High,Sprint-4

@@ -35,3 +35,31 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
 # zdcrmhub
+
+## Monorepo Scaffolding (Phase 1)
+
+This repository now includes monorepo scaffolding:
+
+- `apps/api`: NestJS API skeleton
+- `apps/web`: planned migration target for the existing Next.js frontend
+- `packages/*`: shared package placeholders
+
+Current frontend still runs from repository root during migration.
+
+### New backend setup
+
+1. Install dependencies:
+	- `npm install`
+2. Start postgres:
+	- `docker compose up -d postgres`
+3. Copy env file:
+	- `cp apps/api/.env.example apps/api/.env`
+4. Generate Prisma client:
+	- `npm run db:generate`
+5. Apply migration:
+	- `npm run db:migrate`
+6. Run API:
+	- `npm run dev:api`
+
+Health endpoint:
+- `http://localhost:4000/api/v1/health`

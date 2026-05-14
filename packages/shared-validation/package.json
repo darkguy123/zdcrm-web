@@ -1,0 +1,7 @@
+{
+  "name": "@zdcrm/shared-validation",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.ts",
+  "types": "index.ts"
+}

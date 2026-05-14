@@ -1,0 +1,8 @@
+services:
+  zdcrmapi:
+    image: zdcrmapi
+    build:
+      context: apps/api
+      dockerfile: ./Dockerfile
+    environment:
+      NODE_ENV: production

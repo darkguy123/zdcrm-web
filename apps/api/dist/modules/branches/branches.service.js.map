@@ -1,0 +1,1 @@
+{"version":3,"file":"branches.service.js","sourceRoot":"","sources":["../../../src/modules/branches/branches.service.ts"],"names":[],"mappings":";;;;;;;;;AAAA,2CAA4C;AAGrC,IAAM,eAAe,GAArB,MAAM,eAAe;IAC1B,IAAI;QACF,OAAO;YACL,OAAO,EAAE,IAAI;YACb,IAAI,EAAE,EAAE;YACR,OAAO,EAAE,0BAA0B;SACpC,CAAC;IACJ,CAAC;CACF,CAAA;AARY,0CAAe;0BAAf,eAAe;IAD3B,IAAA,mBAAU,GAAE;GACA,eAAe,CAQ3B"}

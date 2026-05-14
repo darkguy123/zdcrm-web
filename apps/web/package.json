@@ -1,0 +1,8 @@
+{
+  "name": "@zdcrm/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'Web app still runs from repository root during migration.'"
+  }
+}

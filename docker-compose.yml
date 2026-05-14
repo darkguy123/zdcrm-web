@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: zdcrm-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: zdcrm_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - zdcrm_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  zdcrm_postgres_data:
